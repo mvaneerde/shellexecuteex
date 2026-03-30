@@ -1,0 +1,5 @@
+# ignore Visual Studio Code settings
+/.vscode/
+
+# ignore CMake build output
+/build/
