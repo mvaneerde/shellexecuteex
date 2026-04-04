@@ -53,7 +53,7 @@ jobs:
           mkdir -p release
           cp build-x64/* release/
           cp build-ARM64/* release/
-          zip -r release/ShellExecuteEx-${{ github.run_number }} windows.zip release/*
+          zip -r release/ShellExecuteEx-${{ github.run_number }}-windows.zip release/*
 
       - name: Create release
         id: create_release
