@@ -9,4 +9,3 @@ jobs:
     uses: ./.github/workflows/common-build.yaml
     with:
       build-dir: private-branch-build
-      arch-matrix: [x64, ARM64]
