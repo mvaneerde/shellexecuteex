@@ -57,7 +57,7 @@ jobs:
 
       - name: Create release
         id: create_release
-        uses: actions/create_release@v1
+        uses: actions/create-release@v1
         with:
           tag_name: ${{ github.ref_name }}
           release_name: Release ${{ github.ref_name }}
@@ -73,4 +73,3 @@ jobs:
           asset_path: release/ShellExecuteEx-${{ github.run_number }}-windows.zip
           asset-name: ShellExecuteEx-${{ github.run_number }}-windows.zip
           asset_content_type: application/zip
-          
