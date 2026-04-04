@@ -7,6 +7,7 @@ on:
 jobs:
   version:
     name: Increment version
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.calc.outputs.version }}
       tag: ${{ steps.calc.outputs.tag }}
@@ -38,6 +39,7 @@ jobs:
 
   release:
     needs: build
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
@@ -70,6 +72,7 @@ jobs:
 
   create-tag:
     name: Create tag
+    runs-on: ubuntu-latest
     needs: [version, release]
     run: |
       git config user.name "github-actions[bot]"
