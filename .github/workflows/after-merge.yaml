@@ -44,11 +44,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Download x64 artifact
         uses: actions/download-artifact@v4
         with:
@@ -64,9 +59,12 @@ jobs:
       - name: Zip release
         run: |
           mkdir -p release
-          cp build-x64/* release/
-          cp build-arm64/* release/
-          zip -r release/ShellExecuteEx-${{ github.run_number }}.zip release/*
+          zip -r release/ShellExecuteEx.zip build-arm64 build-x64
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Create tag
         run: |
