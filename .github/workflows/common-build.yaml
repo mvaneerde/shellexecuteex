@@ -14,20 +14,20 @@ jobs:
       matrix:
         arch: [x64, arm64]
 
-      steps:
-        - name: Checkout source
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-        - name: Configure CMake
-          run: cmake -S src -B ${{ inputs['build-dir'] }}-${{ matrix.arch }} -G "Visual Studio 17 2022" -A ${{ matrix.arch }}
+      - name: Configure CMake
+        run: cmake -S src -B ${{ inputs['build-dir'] }}-${{ matrix.arch }} -G "Visual Studio 17 2022" -A ${{ matrix.arch }}
 
-        - name: Build
-          run: cmake --build ${{ inputs['build-dir'] }}-${{ matrix.arch }} --config RelWithDebInfo
+      - name: Build
+        run: cmake --build ${{ inputs['build-dir'] }}-${{ matrix.arch }} --config RelWithDebInfo
 
-        - name: Upload binaries
-          uses: actions/upload-artifact@v4
-          with:
-            name: ${{ inputs['build-dir'] }}-${{ matrix.arch }}
-            path: |
-              ${{ inputs['build-dir'] }}-${{ matrix.arch }}/RelWithDebInfo/*.exe
-              ${{ inputs['build-dir'] }}-${{ matrix.arch }}/RelWithDebInfo/*.pdb
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs['build-dir'] }}-${{ matrix.arch }}
+          path: |
+            ${{ inputs['build-dir'] }}-${{ matrix.arch }}/RelWithDebInfo/*.exe
+            ${{ inputs['build-dir'] }}-${{ matrix.arch }}/RelWithDebInfo/*.pdb
