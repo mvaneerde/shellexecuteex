@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/common-build.yaml
+    uses: ./.github/workflows/common-build.yml
     with:
       build-dir: main-build
 
@@ -25,14 +25,14 @@ jobs:
       - name: Download ARM64 artifact
         uses: actions/download-artifact@v4
         with:
-          name: main-build-ARM64
-          path: build-ARM64
+          name: main-build-arm64
+          path: build-arm64
 
       - name: Zip release
         run: |
           mkdir -p release
           cp build-x64/* release/
-          cp build-ARM64/* release/
+          cp build-arm64/* release/
           zip -r release/ShellExecuteEx-${{ github.run_number }}.zip release/*
 
       - name: Create GitHub release
