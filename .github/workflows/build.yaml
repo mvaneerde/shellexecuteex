@@ -30,8 +30,8 @@ jobs:
         with:
           name: ShellExecuteEx-${{ matrix.arch }}
           path: |
-            build-${{ matrix.arch }}/Release/*.exe
-            build-${{ matrix.arch }}/Release/*.pdb
+            build-${{ matrix.arch }}/RelWithDebInfo/*.exe
+            build-${{ matrix.arch }}/RelWithDebInfo/*.pdb
         
   release:
     runs-on: ubuntu-latest
