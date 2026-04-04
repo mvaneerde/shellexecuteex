@@ -13,14 +13,14 @@ jobs:
       tag: ${{ steps.calc.outputs.tag }}
     steps:
       - name: Checkout
-        uses: action/checkout@v4
+        uses: actions/checkout@v4
 
       - name: Calculate next version
         id: calc
         run: |
-          git -fetch --tags
-          LATEST_TAG=$(git --describe --tags --abbrev=0 || echo "v0.0.0")
-          VERSION=$(LATEST_TAG#v)
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          VERSION=${LATEST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
           PATCH=$((PATCH + 1))
           NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
@@ -78,7 +78,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ needs.version.output.NEXT_TAG }}
-          git push origin ${{ needs.version.output.NEXT_TAG }}
+          git tag ${{ needs.version.outputs.NEXT_TAG }}
+          git push origin ${{ needs.version.outputs.NEXT_TAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
