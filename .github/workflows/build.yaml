@@ -74,5 +74,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: release/ShellExecuteEx-${{ github.run_number }}-windows.zip
-          asset-name: ShellExecuteEx-${{ github.run_number }}-windows.zip
+          asset_name: ShellExecuteEx-${{ github.run_number }}-windows.zip
           asset_content_type: application/zip
