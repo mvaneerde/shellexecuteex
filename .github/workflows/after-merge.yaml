@@ -1,0 +1,45 @@
+name: Create release after successful merge
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    uses: ./.github/workflows/common-build.yml
+    with:
+      build-dir: main-build
+      arch-matrix: [x64, ARM64]
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - name: Download x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: main-build-x64
+          path: build-x64
+
+      - name: Download ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: main-build-ARM64
+          path: build-ARM64
+
+      - name: Zip release
+        run: |
+          mkdir -p release
+          cp build-x64/* release/
+          cp build-ARM64/* release/
+          zip -r release/ShellExecuteEx-${{ github.run_number }}.zip release/*
+
+      - name: Create GitHub release
+        id: gh_release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
