@@ -39,7 +39,7 @@ jobs:
       version-str: ${{ needs.version.outputs.version }}
 
   release:
-    needs: build
+    needs: [version, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -63,24 +63,21 @@ jobs:
           cp build-arm64/* release/
           zip -r release/ShellExecuteEx-${{ github.run_number }}.zip release/*
 
-      - name: Create GitHub release
+      - name: Create tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ needs.version.outputs.tag }}
+          git push origin ${{ needs.version.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release
         id: gh_release
         uses: softprops/action-gh-release@v2
         with:
           files: release/*.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  create-tag:
-    name: Create tag
-    runs-on: ubuntu-latest
-    needs: [version, release]
-    steps:
-      - name: Set version tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ needs.version.outputs.NEXT_TAG }}
-          git push origin ${{ needs.version.outputs.NEXT_TAG }}
+          name: Release ${{ needs.version.outputs.version }}
+          tag_name: ${{ needs.version.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
