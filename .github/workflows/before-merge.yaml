@@ -1,0 +1,12 @@
+name: Verify private branch builds successfully
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    uses: ./.github/workflows/common-build.yaml
+    with:
+      build-dir: private-branch-build
+      arch-matrix: [x64, ARM64]
