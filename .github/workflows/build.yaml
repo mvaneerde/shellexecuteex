@@ -2,7 +2,7 @@ name: Build with MSVC/CMake
 
 on:
   push:
-    branches: [ build-test ]
+    tags: 'v*'
   
   workflow_dispatch:
 
