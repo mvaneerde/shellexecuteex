@@ -9,3 +9,4 @@ jobs:
     uses: ./.github/workflows/common-build.yaml
     with:
       build-dir: private-branch-build
+      version-str: "0.0.0"
