@@ -30,6 +30,9 @@ jobs:
       - name: Build
         run: cmake --build ${{ inputs['build-dir'] }}-${{ matrix.arch }} --config RelWithDebInfo
 
+      - name: Run tests
+        run: ctest --test-dir ${{ inputs['build-dir'] }}-${{ matrix.arch }} -C RelWithDebInfo --output-on-failure
+
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
