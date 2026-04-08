@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
+#include "common.h"
 
-// Optional: sample test to verify setup
-TEST(Basic, FailingTest) {
-    EXPECT_EQ(2 + 2, 5);
+TEST(Basic, TrivialTest) {
+    EXPECT_EQ(2 + 2, 4);
 }
 
-// Main entry point for all tests
-int wmain(int argc, wchar_t** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
+int wmain(int argc, LPCWSTR argv[]) {
+    wchar_t **v = const_cast<wchar_t **>(argv);
+    ::testing::InitGoogleTest(&argc, v);
     return RUN_ALL_TESTS();
 }

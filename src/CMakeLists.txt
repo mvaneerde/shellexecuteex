@@ -38,6 +38,9 @@ add_executable(tests tests/test_main.cpp)
 if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
     target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
+    target_include_directories(tests
+        PRIVATE ${CMAKE_SOURCE_DIR}
+    )
 endif()
 target_link_libraries(tests shellexecuteex.lib GTest::gtest_main)
 
