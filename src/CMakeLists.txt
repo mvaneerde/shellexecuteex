@@ -34,7 +34,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest)
 
-add_executable(tests tests/test_main.cpp)
+file(GLOB TEST_SOURCES "tests/*.cpp")
+
+add_executable(tests ${TEST_SOURCES})
 if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
     target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
