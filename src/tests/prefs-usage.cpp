@@ -20,6 +20,7 @@ TEST(Prefs, Usage) {
         { L"shellexecuteex.exe", L"-?" },
         { L"shellexecuteex.exe", L"/?" },
         { L"shellexecuteex.exe", L"--help" },
+        { L"shellexecuteex.exe", L"help" },
     };
     for (int i = 0; i < _countof(help); i++) {
         args.push_back(Args(_countof(help[i]), help[i]));
