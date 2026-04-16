@@ -49,22 +49,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download x64 artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: main-build-x64
-          path: build-x64
-
-      - name: Download ARM64 artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: main-build-arm64
-          path: build-arm64
+          name: signed-binaries
+          path: build
 
       - name: Zip release
         run: |
           mkdir -p release
-          zip -r release/ShellExecuteEx.zip build-arm64 build-x64
+          zip -r release/ShellExecuteEx.zip build
 
       - name: Create tag
         run: |
