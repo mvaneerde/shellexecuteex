@@ -9,11 +9,6 @@ on:
       version-str:
         required: true
         type: string
-    secrets:
-      SIGNING_CERT_BASE64:
-        required: true
-      SIGNING_CERT_PASSWORD:
-        required: true
 
 jobs:
   build:
