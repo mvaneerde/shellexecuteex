@@ -64,10 +64,10 @@ jobs:
           merge-multiple: true
 
       - name: Sign executables
-        uses: ebuckmaster/code-sign-with-signtool@v1
+        uses: dlemstra/code-sign-action@v1
         with:
           certificate: ${{ secrets.SIGNING_CERT_BASE64 }}
-          cert-password: ${{ secrets.SIGNING_CERT_PASSWORD }}
+          password: ${{ secrets.SIGNING_CERT_PASSWORD }}
           folder: artifacts
 
       - name: Upload signed artifacts
