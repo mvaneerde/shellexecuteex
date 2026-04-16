@@ -63,24 +63,12 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Extract signing certificate
-        run: |
-          [IO.File]::WriteAllBytes(
-            "$env:RUNNER_TEMP\cert.pfx",
-            [Convert]::FromBase64String("${{ secrets.SIGNING_CERT_BASE64 }}")
-          )
-
-      - name: Sign executable
-        run: |
-          Get-ChildItem artifacts -Recurse -Filter *.exe | ForEach-Object {
-            signtool.exe sign `
-              /f "$env:RUNNER_TEMP\cert.pfx" `
-              /p "${{ secrets.SIGNING_CERT_PASSWORD }}" `
-              /tr "http://timestamp.digicert.com" `
-              /td sha256 `
-              /fd sha256 `
-              $_.FullName
-          }
+      - name: Sign executables
+        uses: ebuckmaster/code-sign-with-signtool@v1
+        with:
+          certificate: ${{ secrets.SIGNING_CERT_BASE64 }}
+          cert-password: ${{ secrets.SIGNING_CERT_PASSWORD }}
+          folder: artifacts
 
       - name: Upload signed artifacts
         uses: actions/upload-artifact@v4
