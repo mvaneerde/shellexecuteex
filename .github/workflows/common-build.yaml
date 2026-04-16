@@ -9,6 +9,11 @@ on:
       version-str:
         required: true
         type: string
+    secrets:
+      SIGNING_CERT_BASE64:
+        required: true
+      SIGNING_CERT_PASSWORD:
+        required: true
 
 jobs:
   build:
@@ -26,16 +31,41 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure CMake
-        run: cmake -S src -B ${{ inputs['build-dir'] }}-${{ matrix.arch }} `
-          -G "Visual Studio 17 2022" `
-          -A ${{ matrix.arch }} `
-          -DPROJECT_VERSION="${{ inputs['version-str'] }}"
+        run: |
+          cmake -S src -B ${{ inputs['build-dir'] }}-${{ matrix.arch }} `
+            -G "Visual Studio 17 2022" `
+            -A ${{ matrix.arch }} `
+            -DPROJECT_VERSION="${{ inputs['version-str'] }}"
 
       - name: Build
-        run: cmake --build ${{ inputs['build-dir'] }}-${{ matrix.arch }} --config RelWithDebInfo
+        run: |
+          cmake --build ${{ inputs['build-dir'] }}-${{ matrix.arch }} `
+            --config RelWithDebInfo
 
       - name: Run tests
-        run: ctest --test-dir ${{ inputs['build-dir'] }}-${{ matrix.arch }} -C RelWithDebInfo --output-on-failure
+        run: |
+          ctest --test-dir ${{ inputs['build-dir'] }}-${{ matrix.arch }} `
+            -C RelWithDebInfo `
+            --output-on-failure
+
+      - name: Extract signing certificate
+        run: |
+          [IO.File]::WriteAllBytes(
+            "cert.pfx",
+            [Convert]::FromBase64String("${{ secrets.SIGNING_CERT_BASE64 }}")
+          )
+
+      - name: Sign executable
+        run: |
+          Get-ChildItem ${{ inputs['build-dir'] }}-${{ matrix.arch }}\RelWithDebInfo\*.exe | ForEach-Object {
+            signtool.exe sign `
+              /f cert.pfx `
+              /p "${{ secrets.SIGNING_CERT_PASSWORD }}" `
+              /tr "http://timestamp.digicert.com" `
+              /td sha256 `
+              /fd sha256 `
+              $_.FullName
+          }
 
       - name: Upload binaries
         uses: actions/upload-artifact@v4
