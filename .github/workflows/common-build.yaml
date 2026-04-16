@@ -66,15 +66,27 @@ jobs:
       - name: Decode certificate
         run: |
           $certPath = "$env:RUNNER_TEMP\cert.pfx"
+          $base64Cert = "${{ secrets.SIGNING_CERT_BASE64 }}"
+          
+          if ([string]::IsNullOrWhiteSpace($base64Cert)) {
+            Write-Error "SIGNING_CERT_BASE64 secret is empty!"
+            exit 1
+          }
+          
+          Write-Host "Base64 string length: $($base64Cert.Length)"
+          
           try {
-            $certData = [Convert]::FromBase64String("${{ secrets.SIGNING_CERT_BASE64 }}")
-            [IO.File]::WriteAllBytes($certPath, $certData)
-            if (Test-Path $certPath) {
-              $fileSize = (Get-Item $certPath).Length
-              Write-Host "Certificate written successfully: $fileSize bytes"
-            } else {
-              throw "Certificate file was not created"
+            $certData = [Convert]::FromBase64String($base64Cert)
+            Write-Host "Decoded bytes: $($certData.Length)"
+            
+            if ($certData.Length -eq 0) {
+              Write-Error "Base64 decoded to 0 bytes - invalid certificate format"
+              exit 1
             }
+            
+            [IO.File]::WriteAllBytes($certPath, $certData)
+            $fileSize = (Get-Item $certPath).Length
+            Write-Host "Certificate written successfully: $fileSize bytes"
           } catch {
             Write-Error "Failed to decode certificate: $_"
             exit 1
