@@ -63,12 +63,23 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Decode certificate
+        run: |
+          [IO.File]::WriteAllBytes(
+            "$env:RUNNER_TEMP\cert.pfx",
+            [Convert]::FromBase64String("${{ secrets.SIGNING_CERT_BASE64 }}")
+          )
+
       - name: Sign executables
-        uses: dlemstra/code-sign-action@v1
-        with:
-          certificate: '${{ secrets.SIGNING_CERT_BASE64 }}'
-          password: '${{ secrets.SIGNING_CERT_PASSWORD }}'
-          folder: 'artifacts'
+        run: |
+          dotnet tool install --global DotNetSignTool
+          Get-ChildItem artifacts -Recurse -Filter *.exe | ForEach-Object {
+            DotNetSignTool sign `
+              --file $_.FullName `
+              --certificate "$env:RUNNER_TEMP\cert.pfx" `
+              --password "${{ secrets.SIGNING_CERT_PASSWORD }}" `
+              --timestamp "http://timestamp.digicert.com"
+          }
 
       - name: Upload signed artifacts
         uses: actions/upload-artifact@v4
