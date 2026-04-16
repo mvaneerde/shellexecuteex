@@ -11,6 +11,14 @@ on:
         type: string
 
 jobs:
+  test-secret:
+    runs-on: windows-latest
+    steps:
+      - name: Check secret
+        run: |
+          Write-Host "TEST_SECRET = ${{ secrets.TEST_SECRET }}"
+          exit 1
+
   build:
     runs-on: ${{ matrix.os }}
     strategy:
