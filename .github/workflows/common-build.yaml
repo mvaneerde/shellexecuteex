@@ -66,9 +66,9 @@ jobs:
       - name: Sign executables
         uses: dlemstra/code-sign-action@v1
         with:
-          certificate: ${{ secrets.SIGNING_CERT_BASE64 }}
-          password: ${{ secrets.SIGNING_CERT_PASSWORD }}
-          folder: artifacts
+          certificate: '${{ secrets.SIGNING_CERT_BASE64 }}'
+          password: '${{ secrets.SIGNING_CERT_PASSWORD }}'
+          folder: 'artifacts'
 
       - name: Upload signed artifacts
         uses: actions/upload-artifact@v4
