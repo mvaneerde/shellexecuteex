@@ -65,25 +65,53 @@ jobs:
 
       - name: Decode certificate
         run: |
-          [IO.File]::WriteAllBytes(
-            "$env:RUNNER_TEMP\cert.pfx",
-            [Convert]::FromBase64String("${{ secrets.SIGNING_CERT_BASE64 }}")
-          )
+          $certPath = "$env:RUNNER_TEMP\cert.pfx"
+          try {
+            $certData = [Convert]::FromBase64String("${{ secrets.SIGNING_CERT_BASE64 }}")
+            [IO.File]::WriteAllBytes($certPath, $certData)
+            if (Test-Path $certPath) {
+              $fileSize = (Get-Item $certPath).Length
+              Write-Host "Certificate written successfully: $fileSize bytes"
+            } else {
+              throw "Certificate file was not created"
+            }
+          } catch {
+            Write-Error "Failed to decode certificate: $_"
+            exit 1
+          }
 
       - name: Sign executables
         run: |
           $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          $certPath = "$env:RUNNER_TEMP\cert.pfx"
+          $certPassword = "${{ secrets.SIGNING_CERT_PASSWORD }}"
+          
           if (-not (Test-Path $signtoolPath)) {
+            Write-Host "signtool not found at standard location, searching..."
             $signtoolPath = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits" -Recurse -Filter "signtool.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
           }
+          
+          if (-not (Test-Path $certPath)) {
+            Write-Error "Certificate file not found at $certPath"
+            exit 1
+          }
+          
+          Write-Host "Using signtool: $signtoolPath"
+          Write-Host "Signing executables..."
+          
           Get-ChildItem artifacts -Recurse -Filter *.exe | ForEach-Object {
+            Write-Host "Signing: $($_.FullName)"
             & $signtoolPath sign `
-              /f "$env:RUNNER_TEMP\cert.pfx" `
-              /p "${{ secrets.SIGNING_CERT_PASSWORD }}" `
+              /f $certPath `
+              /p $certPassword `
               /tr "http://timestamp.digicert.com" `
               /td sha256 `
               /fd sha256 `
               $_.FullName
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Signing failed for $($_.FullName) with exit code $LASTEXITCODE"
+              exit 1
+            }
           }
 
       - name: Upload signed artifacts
