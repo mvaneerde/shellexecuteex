@@ -40,7 +40,7 @@ jobs:
 
   release:
     needs: [version, build]
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: write
     steps:
@@ -61,10 +61,70 @@ jobs:
           name: main-build-arm64
           path: build-arm64
 
-      - name: Zip release
+      - name: Verify artifacts contain executables
+        shell: pwsh
         run: |
-          mkdir -p release
-          zip -r release/ShellExecuteEx.zip build-arm64 build-x64
+          $artifacts = @("build-x64", "build-arm64")
+          $artifacts | ForEach-Object {
+            $artifact = $_
+            $exeCount = @(Get-ChildItem -Path $artifact -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue).Count
+            Write-Output "$artifact executables found: $exeCount"
+            if ($exeCount -ne 1) {
+              throw "Expected 1 .exe file in $artifact but found $exeCount"
+            }
+          }
+
+      - name: Import signing certificate
+        shell: pwsh
+        run: |
+          $certBytes = [Convert]::FromBase64String("${{ secrets.SIGN_CERT_PFX }}")
+          [IO.File]::WriteAllBytes("cert.pfx", $certBytes)
+
+      - name: Sign executables
+        shell: pwsh
+        run: |
+          $artifacts = @("build-x64", "build-arm64")
+          $artifacts | ForEach-Object {
+            $exeFiles = @(
+              Get-ChildItem -Path $artifact -Filter "*.exe" -Recurse
+            )
+            
+            foreach ($exe in $exeFiles) {
+              Write-Output "Signing $($exe.FullName)"
+              & signtool sign `
+                /f cert.pfx `
+                /p "${{ secrets.SIGN_CERT_PASSWORD }}" `
+                /t "http://timestamp.sectigo.com" `
+                /fd SHA256 `
+                "$($exe.FullName)"
+              if ($LASTEXITCODE -ne 0) {
+                throw "Failed to sign $($exe.FullName)"
+              }
+            }
+          }
+
+      - name: Clean up certificate
+        shell: pwsh
+        if: always()
+        run: Remove-Item "cert.pfx" -Force -ErrorAction SilentlyContinue
+
+      - name: Prepare release package
+        shell: pwsh
+        run: |
+          $releaseDir = "release"
+          $packageDir = Join-Path $releaseDir "ShellExecuteEx"
+          
+          New-Item -ItemType Directory -Path $packageDir -Force | Out-Null
+          $artifacts = @("x64", "arm64")
+          $artifacts | ForEach-Object {
+            Copy-Item `
+              -Path "build-$artifact\*" `
+              -Destination (Join-Path $packageDir $artifact) `
+              -Recurse
+          }
+              
+          $zipPath = Join-Path $releaseDir "ShellExecuteEx-${{ needs.version.outputs.version }}.zip"
+          Compress-Archive -Path $packageDir -DestinationPath $zipPath -Force
 
       - name: Create tag
         run: |
