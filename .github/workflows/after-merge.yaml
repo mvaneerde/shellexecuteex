@@ -83,6 +83,11 @@ jobs:
       - name: Sign executables
         shell: pwsh
         run: |
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" `
+            -Recurse -Filter signtool.exe |
+            Where-Object { $_.FullName -like "*x64*" } |
+            Select-Object -First 1
+
           $artifacts = @("build-x64", "build-arm64")
           $artifacts | ForEach-Object {
             $exeFiles = @(
@@ -91,7 +96,7 @@ jobs:
             
             foreach ($exe in $exeFiles) {
               Write-Output "Signing $($exe.FullName)"
-              & signtool sign `
+              & $signtool.FulllName sign `
                 /f cert.pfx `
                 /p "${{ secrets.SIGN_CERT_PASSWORD }}" `
                 /t "http://timestamp.sectigo.com" `
