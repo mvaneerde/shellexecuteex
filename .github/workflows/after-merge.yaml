@@ -130,6 +130,8 @@ jobs:
           New-Item -ItemType Directory -Path $packageDir -Force | Out-Null
           $artifacts = @("x64", "arm64")
           $artifacts | ForEach-Object {
+            $artifact = $_
+
             Copy-Item `
               -Path "build-$artifact\*" `
               -Destination (Join-Path $packageDir $artifact) `
