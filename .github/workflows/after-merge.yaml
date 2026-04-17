@@ -132,9 +132,16 @@ jobs:
           $artifacts | ForEach-Object {
             $artifact = $_
 
+            $subdir = Join-Path $packageDir $artifact
+
+            New-Item `
+              -ItemType Directory `
+              -Path $subdir `
+              -Force | Out-Null
+
             Copy-Item `
               -Path "build-$artifact\*" `
-              -Destination (Join-Path $packageDir $artifact) `
+              -Destination $subdir `
               -Recurse
           }
               
