@@ -70,7 +70,7 @@ jobs:
             $exeCount = @(Get-ChildItem -Path $artifact -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue).Count
             Write-Output "$artifact executables found: $exeCount"
             if ($exeCount -ne 2) {
-              throw "Expected 1 .exe file in $artifact but found $exeCount"
+              throw "Expected 2 .exe files in $artifact but found $exeCount"
             }
           }
 
