@@ -1,5 +1,16 @@
 cmake_minimum_required(VERSION 3.21)
-project(ShellExecuteEx LANGUAGES CXX)
+
+# pull version number from the command line or environment
+if(DEFINED PROJECT_VERSION)
+    set(VERSION_STR ${PROJECT_VERSION})
+elseif(DEFINED ENV{PROJECT_VERSION})
+    set(VERSION_STR $ENV{PROJECT_VERSION})
+else()
+    set(VERSION_STR "0.0.0")
+endif()
+message(STATUS "Building version: ${VERSION_STR}")
+
+project(ShellExecuteEx VERSION ${VERSION_STR} LANGUAGES CXX)
 
 # ANSI is dead
 add_compile_definitions(UNICODE _UNICODE)
@@ -10,16 +21,6 @@ endif()
 
 # for the ShellExecutExW API implementation
 link_libraries(Shell32)
-
-# pass in version number
-if(DEFINED PROJECT_VERSION)
-    set(VERSION_STR ${PROJECT_VERSION})
-elseif(DEFINED ENV{PROJECT_VERSION})
-    set(VERSION_STR $ENV{PROJECT_VERSION})
-else()
-    set(VERSION_STR "0.0.0")
-endif()
-message(STATUS "Building version: ${VERSION_STR}")
 
 # embed the version in resources.rc
 string(REPLACE "." ";" VERSION_LIST ${VERSION_STR})
