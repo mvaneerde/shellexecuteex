@@ -23,10 +23,9 @@ endif()
 link_libraries(Shell32)
 
 # embed the version in resources.rc
-string(REPLACE "." ";" VERSION_LIST ${VERSION_STR})
-list(GET VERSION_LIST 0 VERSION_MAJOR)
-list(GET VERSION_LIST 1 VERSION_MINOR)
-list(GET VERSION_LIST 2 VERSION_PATCH)
+set(VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(VERSION_PATCH ${PROJECT_VERSION_PATCH})
 configure_file(
     ${CMAKE_SOURCE_DIR}/resources.rc.in
     ${CMAKE_BINARY_DIR}/resources.rc
