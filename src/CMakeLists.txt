@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
+project(ShellExecuteEx LANGUAGES CXX)
+
+# ANSI is dead
+add_compile_definitions(UNICODE _UNICODE)
 
 # pass in version number
 if(DEFINED PROJECT_VERSION)
@@ -22,21 +26,20 @@ configure_file(
 )
 
 # build code into a library that can be consumed by the product and tests
-add_library(shellexecuteex.lib prefs.cpp)
-
-# build product
-project(ShellExecuteEx VERSION ${VERSION_STR} LANGUAGES CXX)
+add_library(shellexecuteex_lib prefs.cpp)
 
 add_executable(${PROJECT_NAME} main.cpp ${CMAKE_BINARY_DIR}/resources.rc)
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION_STR})
 
 # for pulling in resources.h from the generated resources.rc
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 
-target_link_libraries(${PROJECT_NAME} shellexecuteex.lib)
 if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
 endif()
+
+# Link dependencies using KEYWORD signature (PRIVATE) to avoid the reported error
+target_link_libraries(${PROJECT_NAME} PRIVATE shellexecuteex_lib Shell32 User32)
 
 # build tests
 enable_testing()
@@ -56,12 +59,11 @@ file(GLOB TEST_SOURCES "tests/*.cpp")
 add_executable(tests ${TEST_SOURCES})
 if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
     target_include_directories(tests
         PRIVATE ${CMAKE_SOURCE_DIR}
     )
 endif()
-target_link_libraries(tests shellexecuteex.lib GTest::gtest_main)
+target_link_libraries(tests PRIVATE shellexecuteex_lib GTest::gtest_main Shell32 User32)
 
 include(GoogleTest)
 gtest_discover_tests(tests)
