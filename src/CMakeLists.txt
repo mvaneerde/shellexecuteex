@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-# pass in version number
+# pull version number from the command line or environment
 if(DEFINED PROJECT_VERSION)
     set(VERSION_STR ${PROJECT_VERSION})
 elseif(DEFINED ENV{PROJECT_VERSION})
@@ -9,6 +9,18 @@ else()
     set(VERSION_STR "0.0.0")
 endif()
 message(STATUS "Building version: ${VERSION_STR}")
+
+project(ShellExecuteEx VERSION ${VERSION_STR} LANGUAGES CXX)
+
+# ANSI is dead
+add_compile_definitions(UNICODE _UNICODE)
+
+if (MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+endif()
+
+# for the ShellExecutExW API implementation
+link_libraries(Shell32)
 
 # embed the version in resources.rc
 string(REPLACE "." ";" VERSION_LIST ${VERSION_STR})
@@ -22,26 +34,23 @@ configure_file(
 )
 
 # build code into a library that can be consumed by the product and tests
-add_library(shellexecuteex.lib prefs.cpp)
-
-# build product
-project(ShellExecuteEx VERSION ${VERSION_STR} LANGUAGES CXX)
+add_library(shellexecuteex_lib prefs.cpp)
 
 add_executable(${PROJECT_NAME} main.cpp ${CMAKE_BINARY_DIR}/resources.rc)
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION_STR})
 
 # for pulling in resources.h from the generated resources.rc
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 
-target_link_libraries(${PROJECT_NAME} shellexecuteex.lib)
-if (MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
-endif()
+target_link_libraries(${PROJECT_NAME} PRIVATE shellexecuteex_lib)
 
 # build tests
 enable_testing()
 
 include(FetchContent)
+
+# Force GTest to use the Dynamic CRT to match the project settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
   googletest
@@ -55,13 +64,11 @@ file(GLOB TEST_SOURCES "tests/*.cpp")
 
 add_executable(tests ${TEST_SOURCES})
 if (MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
     target_include_directories(tests
         PRIVATE ${CMAKE_SOURCE_DIR}
     )
 endif()
-target_link_libraries(tests shellexecuteex.lib GTest::gtest_main)
+target_link_libraries(tests PRIVATE shellexecuteex_lib GTest::gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(tests)
