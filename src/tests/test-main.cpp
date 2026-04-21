@@ -1,4 +1,4 @@
-#include "test_common.h"
+#include "test-common.h"
 
 int wmain(int argc, LPCWSTR argv[]) {
     wchar_t **v = const_cast<wchar_t **>(argv);
