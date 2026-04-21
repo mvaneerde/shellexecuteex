@@ -33,7 +33,7 @@ configure_file(
 )
 
 # build code into a library that can be consumed by the product and tests
-add_library(shellexecuteex_lib prefs.cpp)
+add_library(shellexecuteex_lib main-internal.cpp prefs.cpp)
 
 add_executable(${PROJECT_NAME} main.cpp ${CMAKE_BINARY_DIR}/resources.rc)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION_STR})
@@ -59,9 +59,11 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest)
 
-file(GLOB TEST_SOURCES "tests/*.cpp")
-
-add_executable(tests ${TEST_SOURCES})
+add_executable(
+    tests
+    tests/main-return.cpp
+    tests/prefs-usage.cpp
+    tests/test-main.cpp)
 if (MSVC)
     target_include_directories(tests
         PRIVATE ${CMAKE_SOURCE_DIR}

@@ -1,6 +1,19 @@
 #include "test-common.h"
 
-TEST(Prefs, Usage) {
+bool g_shellExecuteCalled = false;
+
+BOOL MockShellExecuteExW(LPSHELLEXECUTEINFOW info) {
+    LOG(L"%s", L"Inside MockShellExecuteExW");
+
+    g_shellExecuteCalled = true;
+
+    return TRUE;
+}
+
+// Invoking a usage statement should
+// - not call ShellExecuteExW
+// - return 0
+TEST(Main, Usage) {
     std::vector<Args> args;
 
     // all of these sets of arguments should trigger a usage statement
@@ -19,14 +32,12 @@ TEST(Prefs, Usage) {
     }
 
     for (auto a : args) {
-        Prefs p;
-
-        bool run = true; // Parse should flip this to "false"
-        bool result = p.Parse(a.argc, a.argv, run);
-
-        EXPECT_EQ(result, true);
-        EXPECT_EQ(run, false);
+        g_shellExecuteCalled = false;
+        EXPECT_EQ(0, wmain_internal(
+            a.argc,
+            a.argv,
+            MockShellExecuteExW
+        ));
+        EXPECT_FALSE(g_shellExecuteCalled);
     }
 }
-
-#pragma endregion

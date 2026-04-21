@@ -4,3 +4,4 @@
 
 #include "log.h"
 #include "prefs.h"
+#include "main-internal.h"
