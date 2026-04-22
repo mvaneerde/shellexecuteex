@@ -62,7 +62,8 @@ FetchContent_MakeAvailable(googletest)
 add_executable(
     tests
     tests/main-return.cpp
-    tests/prefs.cpp
+    tests/prefs-show.cpp
+    tests/prefs-usage.cpp
     tests/test-main.cpp)
 if (MSVC)
     target_include_directories(tests
