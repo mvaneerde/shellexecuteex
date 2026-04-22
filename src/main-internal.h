@@ -1,4 +1,4 @@
 // main-internal.h
 
-typedef BOOL (*FNSHELLEXECUTEXW)(LPSHELLEXECUTEINFOW);
-int wmain_internal(int argc, LPCWSTR argv[], FNSHELLEXECUTEXW api);
+typedef BOOL (*FNSHELLEXECUTEEXW)(LPSHELLEXECUTEINFOW);
+int wmain_internal(int argc, LPCWSTR argv[], FNSHELLEXECUTEEXW api);

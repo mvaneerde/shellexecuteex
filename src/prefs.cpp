@@ -390,15 +390,14 @@ void Prefs::ShowUsage() {
     }
 }
 
-void Prefs::LogResult(BOOL result) {
-    LOG(L"ShellExecute %s", (result ? L"succeeded" : L"failed"));
+void Prefs::LogResult(BOOL result, DWORD error) {
+    LOG(L"ShellExecuteExW %s", (result ? L"succeeded" : L"failed"));
     if (result) {
         LOG(L"hProcess: 0x%p", hProcess);
         if (hProcess != nullptr) {
             CloseHandle(hProcess);
         }
     } else {
-        DWORD error = GetLastError();
         LOG(L"Last error: %d", error);
     }
     LOG(L"hInstApp: 0x%p", hInstApp);

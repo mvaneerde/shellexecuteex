@@ -19,7 +19,7 @@ if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 endif()
 
-# for the ShellExecutExW API implementation
+# for the ShellExecuteExW API implementation
 link_libraries(Shell32)
 
 # embed the version in resources.rc
