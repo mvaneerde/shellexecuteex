@@ -308,6 +308,7 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             nShow = ShowInt_From_String(argv[i], found);
             if (!found) {
                 LOG(L"%s", L"Unrecognized value for --show");
+                return false;
             }
             continue;
         }

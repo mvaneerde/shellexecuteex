@@ -28,5 +28,3 @@ TEST(Prefs, Usage) {
         EXPECT_EQ(run, false);
     }
 }
-
-#pragma endregion
