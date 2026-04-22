@@ -1,18 +1,15 @@
 #include "common.h"
 
-int wmain_internal(int argc, LPCWSTR argv[], FNSHELLEXECUTEXW fn_api) {
+int wmain_internal(int argc, LPCWSTR argv[], FNSHELLEXECUTEEXW fn_api) {
     bool run = false;
-    Prefs p; // inherits from SHELLEXECUTEOPTIONSW
+    Prefs p; // inherits from SHELLEXECUTEINFOW
     if (p.Parse(argc, argv, run)) {
         if (run) {
             // actually invoke the API and log the result
             BOOL result = fn_api(&p);
             DWORD error = (result ? ERROR_SUCCESS : GetLastError());
-            p.LogResult(result);
-            LOG(L"Result of ShellExecutExW: %d", result);
-            if (!result) {
-                return error;
-            }
+            p.LogResult(result, error);
+            return (result ? 0 : error);
         } else {
             // just a usage statement
             return 0;
@@ -21,4 +18,6 @@ int wmain_internal(int argc, LPCWSTR argv[], FNSHELLEXECUTEXW fn_api) {
         // parsing failed
         return ERROR_INVALID_PARAMETER;
     }
+
+    // unreachable
 }

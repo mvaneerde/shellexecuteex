@@ -4,7 +4,7 @@ class Prefs : public SHELLEXECUTEINFOW {
 public:
     Prefs(); 
     bool Parse(int argc, LPCWSTR argv[], bool &run);
-    void LogResult(BOOL result);
+    void LogResult(BOOL result, DWORD error);
 
 private:
     static bool IsUsage(int argc, LPCWSTR argv[]);
