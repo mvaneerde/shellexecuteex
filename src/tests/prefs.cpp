@@ -1,5 +1,20 @@
 #include "test-common.h"
 
+TEST(Prefs, MissingShow) {
+    // --show should be required
+    LPCWSTR notepad_args[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"notepad.exe"
+    };
+
+    Prefs p;
+    bool run = true; // Parse should flip this to "false"
+    bool result = p.Parse(_countof(notepad_args), notepad_args, run);
+
+    EXPECT_EQ(result, false);
+    EXPECT_EQ(run, false);
+}
+
 TEST(Prefs, Usage) {
     std::vector<Args> args;
 
@@ -28,5 +43,3 @@ TEST(Prefs, Usage) {
         EXPECT_EQ(run, false);
     }
 }
-
-#pragma endregion
