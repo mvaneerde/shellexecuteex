@@ -7,3 +7,8 @@ struct Args {
 
     Args(int c, LPCWSTR v[]) : argc(c), argv(v) {}
 };
+
+bool operator==(const SHELLEXECUTEINFOW &a, const SHELLEXECUTEINFOW &b);
+void ExpectEq_ShellExecuteInfoW(
+    const SHELLEXECUTEINFOW &expected,
+    const SHELLEXECUTEINFOW &actual);

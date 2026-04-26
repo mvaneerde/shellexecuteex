@@ -65,6 +65,7 @@ add_executable(
     tests/prefs.cpp
     tests/prefs-show.cpp
     tests/prefs-usage.cpp
+    tests/test-helpers.cpp
     tests/test-main.cpp)
 if (MSVC)
     target_include_directories(tests
