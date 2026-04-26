@@ -1,22 +1,16 @@
 #include "common.h"
 
-Prefs::Prefs() {
-    cbSize = sizeof(SHELLEXECUTEINFOW);
-    fMask = SEE_MASK_DEFAULT; // TODO
+Prefs::Prefs() :
+    SHELLEXECUTEINFOW { sizeof(SHELLEXECUTEINFOW) }
+{
     hwnd = GetConsoleWindow();
-    lpVerb = nullptr;
-    lpFile = nullptr; // required parameter
-    lpParameters = nullptr;
-    lpDirectory = nullptr;
     nShow = -1; // required parameter
-    hInstApp = 0; // output
-    lpIDList = nullptr; // TODO
-    lpClass = nullptr; // TODO
-    hkeyClass = nullptr; // TODO
-    dwHotKey = 0; // TODO
-    hIcon = nullptr; // TODO
-    hMonitor = nullptr; // TODO
-    hProcess = nullptr; // TODO
+}
+
+Prefs::~Prefs() {
+    if (hProcess != nullptr) {
+        CloseHandle(hProcess);
+    }
 }
 
 bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
@@ -395,9 +389,6 @@ void Prefs::LogResult(BOOL result, DWORD error) {
     LOG(L"ShellExecuteExW %s", (result ? L"succeeded" : L"failed"));
     if (result) {
         LOG(L"hProcess: 0x%p", hProcess);
-        if (hProcess != nullptr) {
-            CloseHandle(hProcess);
-        }
     } else {
         LOG(L"Last error: %d", error);
     }
