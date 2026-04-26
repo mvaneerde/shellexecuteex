@@ -2,7 +2,8 @@
 
 class Prefs : public SHELLEXECUTEINFOW {
 public:
-    Prefs(); 
+    Prefs();
+    ~Prefs();
     bool Parse(int argc, LPCWSTR argv[], bool &run);
     void LogResult(BOOL result, DWORD error);
 
