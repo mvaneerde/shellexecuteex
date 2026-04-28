@@ -94,3 +94,55 @@ TEST(Prefs, StringArguments) {
         }
     }
 }
+
+// --file is special
+TEST(Prefs, File) {
+    // valid case - passing the argument
+    {
+        SHELLEXECUTEINFOW expected = { sizeof(expected) };
+        expected.lpFile = L"notepad.exe";
+        expected.nShow = SW_NORMAL;
+
+        LPCWSTR argv[] = {
+            L"ShellExecuteEx.exe",
+            L"--show", L"SW_NORMAL",
+            L"--file", L"notepad.exe",
+        };
+
+        Prefs p;
+        bool run = false;
+        EXPECT_EQ(true, p.Parse(_countof(argv), argv, run));
+        EXPECT_EQ(true, run);
+
+        ExpectEq_ShellExecuteInfoW(expected, p);
+    }
+
+    // invalid case - missing value
+    {
+        LPCWSTR argv[] = {
+            L"ShellExecuteEx.exe",
+            L"--show", L"SW_NORMAL",
+            L"--file"
+        };
+
+        Prefs p;
+        bool run = false;
+        EXPECT_EQ(false, p.Parse(_countof(argv), argv, run));
+        // no expectation on run
+    }
+
+    // invalid case - double --file
+    {
+        LPCWSTR argv[] = {
+            L"ShellExecuteEx.exe",
+            L"--show", L"SW_NORMAL",
+            L"--file", L"calc.exe",
+            L"--file", L"notepad.exe",
+        };
+
+        Prefs p;
+        bool run = false;
+        EXPECT_EQ(false, p.Parse(_countof(argv), argv, run));
+        // no expectation on run
+    }
+}
