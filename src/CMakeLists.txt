@@ -62,8 +62,10 @@ FetchContent_MakeAvailable(googletest)
 add_executable(
     tests
     tests/main-return.cpp
-    tests/prefs.cpp
+    tests/prefs-flags.cpp
+    tests/prefs-scenarios.cpp
     tests/prefs-show.cpp
+    tests/prefs-string-arguments.cpp
     tests/prefs-usage.cpp
     tests/test-helpers.cpp
     tests/test-main.cpp)
