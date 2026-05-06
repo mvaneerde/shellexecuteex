@@ -71,9 +71,10 @@ TEST(Prefs, Flags) {
             EXPECT_EQ(run, true);
 
             SHELLEXECUTEINFOW expected = { sizeof(expected) };
+            expected.fMask = f.second;
+            expected.hwnd = GetConsoleWindow();
             expected.lpFile = L"notepad.exe";
             expected.nShow = SW_NORMAL;
-            expected.fMask = f.second;
 
             ExpectEq_ShellExecuteInfoW(expected, p);
         }
