@@ -3,6 +3,7 @@
 // String arguments
 TEST(Prefs, StringArguments) {
     SHELLEXECUTEINFOW expected = { sizeof(expected) };
+    expected.hwnd = GetConsoleWindow();
     expected.lpFile = L"notepad.exe";
     expected.nShow = SW_NORMAL;
 
@@ -100,6 +101,7 @@ TEST(Prefs, File) {
     // valid case - passing the argument
     {
         SHELLEXECUTEINFOW expected = { sizeof(expected) };
+        expected.hwnd = GetConsoleWindow();
         expected.lpFile = L"notepad.exe";
         expected.nShow = SW_NORMAL;
 
