@@ -77,6 +77,7 @@ add_executable(
     tests/prefs-show.cpp
     tests/prefs-string-arguments.cpp
     tests/prefs-usage.cpp
+    tests/run-scenarios.cpp
     tests/test-helpers.cpp
     tests/test-main.cpp)
 if (MSVC)
