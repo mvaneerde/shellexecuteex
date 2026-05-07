@@ -119,7 +119,21 @@ TEST(Prefs, File) {
         ExpectEq_ShellExecuteInfoW(expected, p);
     }
 
-    // invalid case - missing value
+    // invalid case - --file missing
+    {
+        LPCWSTR argv[] = {
+            L"ShellExecuteEx.exe",
+            L"--show", L"SW_NORMAL"
+        };
+
+        Prefs p;
+        bool run = false;
+        EXPECT_EQ(false, p.Parse(_countof(argv), argv, run));
+        // no expectation on run
+    }
+
+
+    // invalid case - --file present but missing value
     {
         LPCWSTR argv[] = {
             L"ShellExecuteEx.exe",
