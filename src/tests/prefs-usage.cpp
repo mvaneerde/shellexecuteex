@@ -3,6 +3,8 @@
 TEST(Prefs, Usage) {
     std::vector<Args> args;
 
+    WindowsApi api;
+
     // all of these sets of arguments should trigger a usage statement
     // with a success return
     // and a "do not run anything" output
@@ -19,7 +21,7 @@ TEST(Prefs, Usage) {
     }
 
     for (auto a : args) {
-        Prefs p;
+        Prefs p(&api);
 
         bool run = true; // Parse should flip this to "false"
         bool result = p.Parse(a.argc, a.argv, run);

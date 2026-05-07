@@ -1,13 +1,15 @@
-#pragma once
+// prefs.h
 
 class Prefs : public SHELLEXECUTEINFOW {
 public:
-    Prefs();
+    Prefs(IWindowsApi *api);
     ~Prefs();
     bool Parse(int argc, LPCWSTR argv[], bool &run);
     void LogResult(BOOL result, DWORD error);
 
 private:
+    IWindowsApi *m_api;
+
     static bool IsUsage(int argc, LPCWSTR argv[]);
     static void ShowUsage();
     static int ShowInt_From_String(LPCWSTR s, bool &found);

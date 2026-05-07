@@ -7,7 +7,8 @@ TEST(Prefs, Calc) {
         L"--show", L"SW_NORMAL"
     };
 
-    Prefs p;
+    WindowsApi api;
+    Prefs p(&api);
     bool run = false;
     EXPECT_EQ(p.Parse(_countof(args), args, run), true);
     EXPECT_EQ(run, true);
@@ -30,7 +31,8 @@ TEST(Prefs, Command_ListCsvFiles) {
         L"--show", L"SW_SHOWMINIMIZED"
     };
 
-    Prefs p;
+    WindowsApi api;
+    Prefs p(&api);
     bool run = false;
     EXPECT_EQ(p.Parse(_countof(args), args, run), true);
     EXPECT_EQ(run, true);
@@ -54,7 +56,8 @@ TEST(Prefs, Admin_PowerShell) {
         L"--show", L"SW_NORMAL"
     };
 
-    Prefs p;
+    WindowsApi api;
+    Prefs p(&api);
     bool run = false;
     EXPECT_EQ(p.Parse(_countof(args), args, run), true);
     EXPECT_EQ(run, true);

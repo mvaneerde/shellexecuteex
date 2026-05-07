@@ -1,15 +1,16 @@
 #include "common.h"
 
-Prefs::Prefs() :
-    SHELLEXECUTEINFOW { sizeof(SHELLEXECUTEINFOW) }
+Prefs::Prefs(IWindowsApi *api) :
+    SHELLEXECUTEINFOW { sizeof(SHELLEXECUTEINFOW) },
+    m_api(api)
 {
-    hwnd = GetConsoleWindow();
+    hwnd = m_api->GetConsoleWindow();
     nShow = -1; // required parameter
 }
 
 Prefs::~Prefs() {
     if (hProcess != nullptr) {
-        CloseHandle(hProcess);
+        m_api->CloseHandle(hProcess);
     }
 }
 
