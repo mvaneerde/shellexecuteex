@@ -1,0 +1,25 @@
+#include "test-common.h"
+
+TEST(Run, Cmd_Echo_1) {
+    // call cmd.exe /c echo 1
+    // with --no-close-process
+    // and wait on it to return
+    WindowsApi api;
+    Prefs prefs(&api);
+    LPCWSTR argv[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"cmd.exe",
+        L"--parameters", L"/c echo 1",
+        L"--show", L"SW_MINIMIZE",
+        L"--no-close-process",
+    };
+    bool run = false;
+    ASSERT_TRUE(prefs.Parse(_countof(argv), argv, run));
+    ASSERT_TRUE(run);
+
+    BOOL result = api.ShellExecuteExW(&prefs);
+    ASSERT_TRUE(result);
+
+    ASSERT_NE(nullptr, prefs.hProcess);
+    EXPECT_EQ(WAIT_OBJECT_0, WaitForSingleObject(prefs.hProcess, INFINITE));
+}

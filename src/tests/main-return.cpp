@@ -1,18 +1,23 @@
 #include "test-common.h"
 
-// set this to false
-// then attempt to invoke MockShellExecuteExW
-//
-// if it's true afterwards, MockShellExecuteExW was invoked
+
+
+// set these to false
+// then check to see if they were flipped to true
+bool g_closeHandleCalled = false;
+bool g_getConsoleWindowCalled = false;
 bool g_shellExecuteCalled = false;
 
 template <BOOL forceResult, DWORD forceError> class MockShellExecuteEx : public IWindowsApi {
 public:
     BOOL CloseHandle(HANDLE h) override {
+        // report that we were invoked
+        g_closeHandleCalled = true;
         return ::CloseHandle(h);
     }
 
     HWND GetConsoleWindow() override {
+        g_getConsoleWindowCalled = true;
         return ::GetConsoleWindow();
     }
 
@@ -21,7 +26,11 @@ public:
         g_shellExecuteCalled = true;
 
         // behave as directed
-        if (!forceResult) {
+        if (forceResult) {
+            if ((info->fMask & SEE_MASK_NOCLOSEPROCESS) == SEE_MASK_NOCLOSEPROCESS) {
+                info->hProcess = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+            }
+        } else {
             SetLastError(forceError);
         }
 
@@ -36,17 +45,22 @@ TEST(Main, ShellExecuteSucceeds) {
     LPCWSTR notepad_args[] = {
         L"shellexecuteex.exe",
         L"--file", L"notepad.exe",
-        L"--show", L"SW_NORMAL"
+        L"--show", L"SW_NORMAL",
+        L"--no-close-process"
     };
 
     MockShellExecuteEx<TRUE, ERROR_SUCCESS> api;
 
+    g_closeHandleCalled = false;
+    g_getConsoleWindowCalled = false;
     g_shellExecuteCalled = false;
     EXPECT_EQ(0, wmain_internal(
         _countof(notepad_args),
         notepad_args,
         &api
     ));
+    EXPECT_TRUE(g_closeHandleCalled);
+    EXPECT_TRUE(g_getConsoleWindowCalled);
     EXPECT_TRUE(g_shellExecuteCalled);
     // no expectation on GetLastError()
 }
@@ -64,12 +78,16 @@ TEST(Main, ShellExecuteFails) {
     const DWORD customError = 123456789;
     MockShellExecuteEx<FALSE, customError> api;
 
+    g_closeHandleCalled = false;
+    g_getConsoleWindowCalled = false;
     g_shellExecuteCalled = false;
     EXPECT_EQ(customError, wmain_internal(
         _countof(notepad_args),
         notepad_args,
         &api
     ));
+    EXPECT_FALSE(g_closeHandleCalled);
+    EXPECT_TRUE(g_getConsoleWindowCalled);
     EXPECT_TRUE(g_shellExecuteCalled);
 }
 
@@ -97,12 +115,16 @@ TEST(Main, Usage) {
     MockShellExecuteEx<TRUE, ERROR_SUCCESS> api;
 
     for (auto a : args) {
+        g_closeHandleCalled = false;
+        g_getConsoleWindowCalled = false;
         g_shellExecuteCalled = false;
         EXPECT_EQ(0, wmain_internal(
             a.argc,
             a.argv,
             &api
         ));
+        EXPECT_FALSE(g_closeHandleCalled);
+        EXPECT_TRUE(g_getConsoleWindowCalled);
         EXPECT_FALSE(g_shellExecuteCalled);
     }
 }
@@ -113,14 +135,19 @@ TEST(Main, Usage) {
 TEST(Main, InvalidParameter) {
     LPCWSTR invalid_args[] = { L"shellexecuteex.exe", L"--foo" };
 
-    g_shellExecuteCalled = false;
-    // any non-zero error code is fine
     MockShellExecuteEx<TRUE, ERROR_SUCCESS> api;
 
+    g_closeHandleCalled = false;
+    g_getConsoleWindowCalled = false;
+    g_shellExecuteCalled = false;
+
+    // any non-zero error code is fine
     EXPECT_NE(0, wmain_internal(
         _countof(invalid_args),
         invalid_args,
         &api
     ));
+    EXPECT_FALSE(g_closeHandleCalled);
+    EXPECT_TRUE(g_getConsoleWindowCalled);
     EXPECT_FALSE(g_shellExecuteCalled);
 }

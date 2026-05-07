@@ -8,6 +8,6 @@ HWND WindowsApi::GetConsoleWindow() {
     return ::GetConsoleWindow();
 }
 
-BOOL WindowsApi::ShellExecuteEx(LPSHELLEXECUTEINFO info) {
-    return ::ShellExecuteEx(info);
+BOOL WindowsApi::ShellExecuteExW(LPSHELLEXECUTEINFOW info) {
+    return ::ShellExecuteExW(info);
 }
