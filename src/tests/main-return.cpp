@@ -6,21 +6,28 @@
 // if it's true afterwards, MockShellExecuteExW was invoked
 bool g_shellExecuteCalled = false;
 
-// make a MockShellExecuteExW that behaves however you want
-template<BOOL forceResult, DWORD forceError>
-BOOL MockShellExecuteExW(LPSHELLEXECUTEINFOW info) {
-    LOG(L"Inside MockShellExecuteExW<forceResult=%d, forceError=%d>", forceResult, forceError);
-
-    // report that we were invoked
-    g_shellExecuteCalled = true;
-
-    // behave as directed
-    if (!forceResult) {
-        SetLastError(forceError);
+template <BOOL forceResult, DWORD forceError> class MockShellExecuteEx : public IWindowsApi {
+public:
+    BOOL CloseHandle(HANDLE h) override {
+        return ::CloseHandle(h);
     }
 
-    return forceResult;
-}
+    HWND GetConsoleWindow() override {
+        return ::GetConsoleWindow();
+    }
+
+    BOOL ShellExecuteEx(LPSHELLEXECUTEINFO info) override {
+        // report that we were invoked
+        g_shellExecuteCalled = true;
+
+        // behave as directed
+        if (!forceResult) {
+            SetLastError(forceError);
+        }
+
+        return forceResult;
+    }
+};
 
 // Valid parameters should
 // - call ShellExecuteExW
@@ -32,11 +39,13 @@ TEST(Main, ShellExecuteSucceeds) {
         L"--show", L"SW_NORMAL"
     };
 
+    MockShellExecuteEx<TRUE, ERROR_SUCCESS> api;
+
     g_shellExecuteCalled = false;
     EXPECT_EQ(0, wmain_internal(
         _countof(notepad_args),
         notepad_args,
-        MockShellExecuteExW<TRUE, ERROR_SUCCESS>
+        &api
     ));
     EXPECT_TRUE(g_shellExecuteCalled);
     // no expectation on GetLastError()
@@ -53,12 +62,13 @@ TEST(Main, ShellExecuteFails) {
     };
 
     const DWORD customError = 123456789;
+    MockShellExecuteEx<FALSE, customError> api;
 
     g_shellExecuteCalled = false;
     EXPECT_EQ(customError, wmain_internal(
         _countof(notepad_args),
         notepad_args,
-        MockShellExecuteExW<FALSE, customError>
+        &api
     ));
     EXPECT_TRUE(g_shellExecuteCalled);
 }
@@ -84,12 +94,14 @@ TEST(Main, Usage) {
         args.push_back(Args(_countof(help[i]), help[i]));
     }
 
+    MockShellExecuteEx<TRUE, ERROR_SUCCESS> api;
+
     for (auto a : args) {
         g_shellExecuteCalled = false;
         EXPECT_EQ(0, wmain_internal(
             a.argc,
             a.argv,
-            MockShellExecuteExW<TRUE, ERROR_SUCCESS>
+            &api
         ));
         EXPECT_FALSE(g_shellExecuteCalled);
     }
@@ -103,10 +115,12 @@ TEST(Main, InvalidParameter) {
 
     g_shellExecuteCalled = false;
     // any non-zero error code is fine
+    MockShellExecuteEx<TRUE, ERROR_SUCCESS> api;
+
     EXPECT_NE(0, wmain_internal(
         _countof(invalid_args),
         invalid_args,
-        MockShellExecuteExW<TRUE, ERROR_SUCCESS>
+        &api
     ));
     EXPECT_FALSE(g_shellExecuteCalled);
 }

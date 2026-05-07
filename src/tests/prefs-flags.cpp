@@ -53,6 +53,7 @@ TEST(Prefs, Flags) {
         },
     };
     
+    WindowsApi api;
     for (auto f : flags) {
         // valid case - passing the argument sets the flag
         {            
@@ -65,7 +66,7 @@ TEST(Prefs, Flags) {
                 f.first
             };
 
-            Prefs p;
+            Prefs p(&api);
             bool run = false;
             EXPECT_EQ(p.Parse(_countof(argv), argv, run), true);
             EXPECT_EQ(run, true);
@@ -91,7 +92,7 @@ TEST(Prefs, Flags) {
                 f.first
             };
 
-            Prefs p;
+            Prefs p(&api);
             bool run = false;
             EXPECT_EQ(p.Parse(_countof(argv), argv, run), false);
             // no expectation on run

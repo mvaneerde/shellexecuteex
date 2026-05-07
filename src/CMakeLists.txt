@@ -33,9 +33,18 @@ configure_file(
 )
 
 # build code into a library that can be consumed by the product and tests
-add_library(shellexecuteex_lib main-internal.cpp prefs.cpp)
+add_library(
+    shellexecuteex_lib
+    main-internal.cpp
+    prefs.cpp
+    windows-api.cpp
+)
 
-add_executable(${PROJECT_NAME} main.cpp ${CMAKE_BINARY_DIR}/resources.rc)
+add_executable(
+    ${PROJECT_NAME}
+    main.cpp
+    ${CMAKE_BINARY_DIR}/resources.rc
+)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION_STR})
 
 # for pulling in resources.h from the generated resources.rc
