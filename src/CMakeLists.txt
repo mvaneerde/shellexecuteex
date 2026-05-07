@@ -71,6 +71,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(
     tests
     tests/main-return.cpp
+    tests/prefs-api.cpp
     tests/prefs-flags.cpp
     tests/prefs-scenarios.cpp
     tests/prefs-show.cpp
@@ -83,7 +84,7 @@ if (MSVC)
         PRIVATE ${CMAKE_SOURCE_DIR}
     )
 endif()
-target_link_libraries(tests PRIVATE shellexecuteex_lib GTest::gtest_main)
+target_link_libraries(tests PRIVATE shellexecuteex_lib GTest::gtest_main GTest::gmock_main)
 
 include(GoogleTest)
 gtest_discover_tests(tests)
