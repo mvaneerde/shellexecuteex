@@ -5,14 +5,14 @@ TEST(Prefs, ShowValid) {
     LPCWSTR notepad_args[] = {
         L"shellexecuteex.exe",
         L"--file", L"notepad.exe",
-        L"--show", L"SW_NORMAL"
-    };
+        L"--show", L"SW_SHOWMAXIMIZED"
+     };
 
     WindowsApi api;
     Prefs p(&api);
     bool run = false; // Parse should set this to "true"
-    EXPECT_EQ(p.Parse(_countof(notepad_args), notepad_args, run), true);
-    EXPECT_EQ(run, true);
+    EXPECT_TRUE(p.Parse(_countof(notepad_args), notepad_args, run));
+    EXPECT_TRUE(run);
 }
 
 TEST(Prefs, ShowDuplicate) {
@@ -27,7 +27,7 @@ TEST(Prefs, ShowDuplicate) {
     WindowsApi api;
     Prefs p(&api);
     bool run = false; // Parse should set this to "true"
-    EXPECT_EQ(p.Parse(_countof(notepad_args), notepad_args, run), false);
+    EXPECT_EQ(false, p.Parse(_countof(notepad_args), notepad_args, run));
     // no expectation on "run"
 }
 
@@ -42,7 +42,7 @@ TEST(Prefs, ShowInvalid) {
     WindowsApi api;
     Prefs p(&api);
     bool run = false;
-    EXPECT_EQ(p.Parse(_countof(notepad_args), notepad_args, run), false);
+    EXPECT_EQ(false, p.Parse(_countof(notepad_args), notepad_args, run));
     // no expectation on "run"
 }
 
@@ -59,12 +59,12 @@ TEST(Prefs, ShowMissingValue) {
     bool run = false;
     bool result = p.Parse(_countof(notepad_args), notepad_args, run);
 
-    EXPECT_EQ(result, false);
+    EXPECT_FALSE(result);
     // no expectation on "run"
 }
 
-TEST(Prefs, ShowMissing) {
-    // --show is required
+TEST(Prefs, ShowDefault) {
+    // --show defaults to SW_NORMAL
     LPCWSTR notepad_args[] = {
         L"shellexecuteex.exe",
         L"--file", L"notepad.exe"
@@ -75,6 +75,7 @@ TEST(Prefs, ShowMissing) {
     bool run = false;
     bool result = p.Parse(_countof(notepad_args), notepad_args, run);
 
-    EXPECT_EQ(result, false);
-    // no expectation on "run"
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(run);
+    EXPECT_EQ(SW_NORMAL, p.nShow);
 }

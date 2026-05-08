@@ -2,9 +2,8 @@
 
 TEST(Prefs, Calc) {
     LPCWSTR args[] = {
-        L"calc.exe",
-        L"--file", L"calc.exe",
-        L"--show", L"SW_NORMAL"
+        L"shellexecuteex.exe",
+        L"--file", L"calc.exe"
     };
 
     WindowsApi api;
@@ -52,8 +51,7 @@ TEST(Prefs, Admin_PowerShell) {
     LPCWSTR args[] = {
         L"shellexecuteex.exe",
         L"--verb", L"runas",
-        L"--file", L"powershell.exe",
-        L"--show", L"SW_NORMAL"
+        L"--file", L"powershell.exe"
     };
 
     WindowsApi api;

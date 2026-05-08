@@ -7,7 +7,6 @@ TEST(Main, ShellExecuteSucceeds) {
     LPCWSTR notepad_args[] = {
         L"shellexecuteex.exe",
         L"--file", L"notepad.exe",
-        L"--show", L"SW_NORMAL",
         L"--no-close-process"
     };
 
@@ -16,6 +15,8 @@ TEST(Main, ShellExecuteSucceeds) {
     EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
     EXPECT_CALL(api, ShellExecuteExW(_))
         .WillOnce(Invoke([](LPSHELLEXECUTEINFOW info) {
+            // create a closable handle
+            // without actually launching anything
             if ((info->fMask & SEE_MASK_NOCLOSEPROCESS) == SEE_MASK_NOCLOSEPROCESS) {
                 info->hProcess = CreateEvent(nullptr, TRUE, FALSE, nullptr);
             }
@@ -36,8 +37,7 @@ TEST(Main, ShellExecuteSucceeds) {
 TEST(Main, ShellExecuteFails) {
     LPCWSTR notepad_args[] = {
         L"shellexecuteex.exe",
-        L"--file", L"notepad.exe",
-        L"--show", L"SW_NORMAL"
+        L"--file", L"notepad.exe"
     };
 
     const DWORD customError = 123456789;
@@ -46,11 +46,13 @@ TEST(Main, ShellExecuteFails) {
     EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
     EXPECT_CALL(api, ShellExecuteExW(_))
         .WillOnce(Invoke([customError](LPSHELLEXECUTEINFOW) {
+            // simulate failure with a custom error code
             SetLastError(customError);
             return FALSE;
         }));
     EXPECT_CALL(api, CloseHandle(_)).Times(0);
 
+    // verify we got back the specific error
     EXPECT_EQ(customError, wmain_internal(
         _countof(notepad_args),
         notepad_args,
