@@ -2,6 +2,8 @@
 #include <gmock/gmock.h>
 #include "common.h"
 
+using ::testing::_;
+using ::testing::Invoke;
 using ::testing::Return;
 
 struct Args {
