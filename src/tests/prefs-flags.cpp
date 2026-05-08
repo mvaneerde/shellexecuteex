@@ -62,7 +62,6 @@ TEST(Prefs, Flags) {
             LPCWSTR argv[] = {
                 L"ShellExecuteEx.exe",
                 L"--file", L"notepad.exe",
-                L"--show", L"SW_NORMAL",
                 f.first
             };
 
@@ -87,7 +86,6 @@ TEST(Prefs, Flags) {
             LPCWSTR argv[] = {
                 L"ShellExecuteEx.exe",
                 L"--file", L"notepad.exe",
-                L"--show", L"SW_NORMAL",
                 f.first,
                 f.first
             };

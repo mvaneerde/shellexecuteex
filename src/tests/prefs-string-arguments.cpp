@@ -7,7 +7,13 @@ TEST(Prefs, StringArguments) {
     expected.lpFile = L"notepad.exe";
     expected.nShow = SW_NORMAL;
 
-    std::tuple<LPCWSTR, LPCWSTR*, DWORD> stringArgs[] = {
+    struct StringArg {
+        LPCWSTR name;
+        LPCWSTR *setting;
+        DWORD flag;
+    };
+    
+    StringArg stringArgs[] = {
         {
             L"--verb",
             &expected.lpVerb,
@@ -31,31 +37,30 @@ TEST(Prefs, StringArguments) {
     };
 
     WindowsApi api;
-    for (auto a : stringArgs) {
+    for (auto arg : stringArgs) {
         // valid case - passing the argument
         // sets the string and the flag
         {
             LPCWSTR argv[] = {
                 L"ShellExecuteEx.exe",
                 L"--file", L"notepad.exe",
-                L"--show", L"SW_NORMAL",
-                std::get<0>(a), L"foo"
+                arg.name, L"foo"
             };
 
             Prefs p(&api);
             bool run = false;
-            EXPECT_EQ(true, p.Parse(_countof(argv), argv, run));
-            EXPECT_EQ(true, run);
+            EXPECT_TRUE(p.Parse(_countof(argv), argv, run));
+            EXPECT_TRUE(run);
 
-            LPCWSTR oldValue = *std::get<1>(a);
+            LPCWSTR oldValue = *arg.setting;
 
-            *std::get<1>(a) = L"foo";
-            expected.fMask = std::get<2>(a);
+            *arg.setting = L"foo";
+            expected.fMask = arg.flag;
 
             ExpectEq_ShellExecuteInfoW(expected, p);
 
             // reset for the next loop
-            *std::get<1>(a) = oldValue;
+            *arg.setting = oldValue;
         }
 
         // invalid case - passing the argument without a value
@@ -66,13 +71,12 @@ TEST(Prefs, StringArguments) {
             LPCWSTR argv[] = {
                 L"ShellExecuteEx.exe",
                 L"--file", L"notepad.exe",
-                L"--show", L"SW_NORMAL",
-                std::get<0>(a)
+                arg.name
             };
 
             Prefs p(&api);
             bool run = false;
-            EXPECT_EQ(false, p.Parse(_countof(argv), argv, run));
+            EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
             // no expectation on run
         }
 
@@ -84,14 +88,13 @@ TEST(Prefs, StringArguments) {
             LPCWSTR argv[] = {
                 L"ShellExecuteEx.exe",
                 L"--file", L"notepad.exe",
-                L"--show", L"SW_NORMAL",
-                std::get<0>(a), L"foo",
-                std::get<0>(a), L"foo",
+                arg.name, L"foo",
+                arg.name, L"foo",
             };
 
             Prefs p(&api);
             bool run = false;
-            EXPECT_EQ(false, p.Parse(_countof(argv), argv, run));
+            EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
             // no expectation on run
         }
     }
@@ -110,14 +113,13 @@ TEST(Prefs, File) {
 
         LPCWSTR argv[] = {
             L"ShellExecuteEx.exe",
-            L"--show", L"SW_NORMAL",
             L"--file", L"notepad.exe",
         };
 
         Prefs p(&api);
         bool run = false;
-        EXPECT_EQ(true, p.Parse(_countof(argv), argv, run));
-        EXPECT_EQ(true, run);
+        EXPECT_TRUE(p.Parse(_countof(argv), argv, run));
+        EXPECT_TRUE(run);
 
         ExpectEq_ShellExecuteInfoW(expected, p);
     }
@@ -126,12 +128,12 @@ TEST(Prefs, File) {
     {
         LPCWSTR argv[] = {
             L"ShellExecuteEx.exe",
-            L"--show", L"SW_NORMAL"
+            L"--unicode" // need an argument or we get a usage statement
         };
 
         Prefs p(&api);
         bool run = false;
-        EXPECT_EQ(false, p.Parse(_countof(argv), argv, run));
+        EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
         // no expectation on run
     }
 
@@ -140,13 +142,12 @@ TEST(Prefs, File) {
     {
         LPCWSTR argv[] = {
             L"ShellExecuteEx.exe",
-            L"--show", L"SW_NORMAL",
             L"--file"
         };
 
         Prefs p(&api);
         bool run = false;
-        EXPECT_EQ(false, p.Parse(_countof(argv), argv, run));
+        EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
         // no expectation on run
     }
 
@@ -154,14 +155,13 @@ TEST(Prefs, File) {
     {
         LPCWSTR argv[] = {
             L"ShellExecuteEx.exe",
-            L"--show", L"SW_NORMAL",
             L"--file", L"calc.exe",
-            L"--file", L"notepad.exe",
+            L"--file", L"calc.exe",
         };
 
         Prefs p(&api);
         bool run = false;
-        EXPECT_EQ(false, p.Parse(_countof(argv), argv, run));
+        EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
         // no expectation on run
     }
 }

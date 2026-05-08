@@ -5,7 +5,7 @@ Prefs::Prefs(IWindowsApi *api) :
     m_api(api)
 {
     hwnd = m_api->GetConsoleWindow();
-    nShow = -1; // required parameter
+    nShow = SW_NORMAL;
 }
 
 Prefs::~Prefs() {
@@ -171,12 +171,6 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             return false;
         }
 
-        // show is required
-        if (!seenShow) {
-            LOG(L"%s", L"--show is required");
-            return false;
-        }
-
         run = true;
         return true;
     }
@@ -213,24 +207,24 @@ void Prefs::ShowUsage() {
     LOG(L"%s", L"    show usage");
     LOG(L"%s", L"");
     LOG(L"%s", L"shellexecute.exe");
-    LOG(L"%s", L"    [--verb <verb>]");
     LOG(L"%s", L"    --file <file>");
-    LOG(L"%s", L"    [--parameters <parameters>]");
-    LOG(L"%s", L"    [--directory <directory>]");
-    LOG(L"%s", L"    --show <show-options>");
-    LOG(L"%s", L"    [--class-name <class-name>]");
-    LOG(L"%s", L"    [--no-close-process]");
-    LOG(L"%s", L"    [--connect-network-drive]");
-    LOG(L"%s", L"    [--no-async]");
-    LOG(L"%s", L"    [--do-environment-substitution]");
-    LOG(L"%s", L"    [--no-ui]");
-    LOG(L"%s", L"    [--unicode]");
-    LOG(L"%s", L"    [--no-console]");
     LOG(L"%s", L"    [--async-ok]");
-    LOG(L"%s", L"    [--no-query-class-store]");
-    LOG(L"%s", L"    [--no-zone-checks]");
-    LOG(L"%s", L"    [--wait-for-input-idle]");
+    LOG(L"%s", L"    [--class-name <class-name>]");
+    LOG(L"%s", L"    [--connect-network-drive]");
+    LOG(L"%s", L"    [--directory <directory>]");
+    LOG(L"%s", L"    [--do-environment-substitution]");
     LOG(L"%s", L"    [--log-usage]");
+    LOG(L"%s", L"    [--no-async]");
+    LOG(L"%s", L"    [--no-close-process]");
+    LOG(L"%s", L"    [--no-console]");
+    LOG(L"%s", L"    [--no-query-class-store]");
+    LOG(L"%s", L"    [--no-ui]");
+    LOG(L"%s", L"    [--no-zone-checks]");
+    LOG(L"%s", L"    [--parameters <parameters>]");
+    LOG(L"%s", L"    [--show <show-options>]");
+    LOG(L"%s", L"    [--unicode]");
+    LOG(L"%s", L"    [--verb <verb>]");
+    LOG(L"%s", L"    [--wait-for-input-idle]");
 
     LOG(L"%s", L"");
     LOG(L"%s", L"show-options:");
@@ -239,6 +233,7 @@ void Prefs::ShowUsage() {
             showInts[i].name,
             (i == _countof(showInts) - 1 ? L"" : L" |"));
     }
+    LOG(L"    %s", L"Default is SW_NORMAL");
 }
 
 void Prefs::LogResult(BOOL result, DWORD error) {
