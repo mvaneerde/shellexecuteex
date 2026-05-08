@@ -1,4 +1,5 @@
 // common.h
+#include <map>
 
 #include <wtypes.h>
 #include <shellapi.h>

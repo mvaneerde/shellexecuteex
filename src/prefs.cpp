@@ -15,318 +15,173 @@ Prefs::~Prefs() {
 }
 
 bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
+    // see if this is a request for a usage statement
     if (IsUsage(argc, argv)) {
         ShowUsage();
         run = false;
         return true;
+    } else {
+        // some arguments just set a flag
+        class FlagArg {
+        public:
+            ULONG flag;
+            bool seen;
+
+            FlagArg() : flag(0), seen(false) {}
+            FlagArg(ULONG f) : flag(f), seen(false) {}
+        };
+
+        struct StringCompare {
+            bool operator()(LPCWSTR a, LPCWSTR b) const {
+                return _wcsicmp(a, b) < 0;
+            }
+        };
+
+        std::map<LPCWSTR, FlagArg, StringCompare> flagArgs = {
+            { L"--async-ok", FlagArg(SEE_MASK_ASYNCOK) },
+            { L"--connect-network-drive", FlagArg(SEE_MASK_CONNECTNETDRV) },
+            { L"--do-environment-substitution", FlagArg(SEE_MASK_DOENVSUBST) },
+            { L"--log-usage", FlagArg(SEE_MASK_FLAG_LOG_USAGE) },
+            { L"--no-async", FlagArg(SEE_MASK_NOASYNC) },
+            { L"--no-close-process", FlagArg(SEE_MASK_NOCLOSEPROCESS) },
+            { L"--no-console", FlagArg(SEE_MASK_NO_CONSOLE) },
+            { L"--no-query-class-store", FlagArg(SEE_MASK_NOQUERYCLASSSTORE) },
+            { L"--no-ui", FlagArg(SEE_MASK_FLAG_NO_UI) },
+            { L"--no-zone-checks", FlagArg(SEE_MASK_NOZONECHECKS) },
+            { L"--unicode", FlagArg(SEE_MASK_UNICODE) },
+            { L"--wait-for-input-idle", FlagArg(SEE_MASK_WAITFORINPUTIDLE) },
+        };
+
+        // some arguments just set a string
+        class StringArg {
+        public:
+            LPCWSTR *setting;
+            bool seen;
+
+            StringArg() : setting(nullptr), seen(false) {}
+            StringArg(LPCWSTR *s) : setting(s), seen(false) {}
+        };
+        
+        std::map<LPCWSTR, StringArg, StringCompare> stringArgs = {
+            { L"--directory", StringArg(&lpDirectory) },
+            { L"--file", StringArg(&lpFile) },
+            { L"--parameters", StringArg(&lpParameters) },
+            { L"--verb", StringArg(&lpVerb) },
+        };
+
+        // mask options
+        // SEE_MASK_CLASSKEY TODO
+        // SEE_MASK_IDLIST TODO
+        // SEE_MASK_INVOKEIDLIST TODO
+        // SEE_MASK_ICON TODO
+        // SEE_MASK_HOTKEY TODO
+        // SEE_MASK_HMONITOR TODO
+        // SEE_MASK_FLAG_HINST_IS_SITE TODO
+
+        bool seenClass = false;
+        bool seenShow = false;
+
+        for (int i = 1; i < argc; i++) {
+            // flag arguments
+            {
+                auto it = flagArgs.find(argv[i]);
+                if (it != flagArgs.end()) {
+                    FlagArg &arg = it->second;
+                    if (arg.seen) {
+                        LOG(L"Multiple %s arguments passed", it->first);
+                        return false;
+                    }
+                    arg.seen = true;
+                    fMask |= arg.flag;
+                    continue;
+                }
+            }
+
+            // string arguments
+            {
+                auto it = stringArgs.find(argv[i]);
+                if (it != stringArgs.end()) {
+                    StringArg &arg = it->second;
+                    if (arg.seen) {
+                        LOG(L"Multiple %s arguments passed", it->first);
+                        return false;
+                    }
+                    arg.seen = true;
+
+                    if (++i == argc) {
+                        LOG(L"%s requires a value", it->first);
+                        return false;
+                    }
+
+                    *arg.setting = argv[i];
+                    continue;
+                }
+            }
+
+            // --class-name
+            if (0 == _wcsicmp(argv[i], L"--class-name")) {
+                if (seenClass) {
+                    LOG(L"%s", L"Multiple class arguments passed");
+                    return false;
+                }
+                seenClass = true;
+
+                i++;
+                if (i == argc) {
+                    LOG(L"%s", L"--class-name requires a value");
+                    return false;
+                }
+
+                fMask |= SEE_MASK_CLASSNAME;
+                lpClass = argv[i];
+                continue;
+            }
+
+            // --show
+            if (0 == _wcsicmp(argv[i], L"--show")) {
+                if (seenShow) {
+                    LOG(L"%s", L"Multiple --show arguments passed");
+                    return false;
+                }
+                seenShow = true;
+
+                i++;
+                if (i == argc) {
+                    LOG(L"%s", L"--show requires a value");
+                    return false;
+                }
+
+                bool found = false;
+                nShow = ShowInt_From_String(argv[i], found);
+                if (!found) {
+                    LOG(L"%s", L"Unrecognized value for --show");
+                    return false;
+                }
+                continue;
+            }
+
+            // any other argument
+            LOG(L"Unrecognized argument %s", argv[i]);
+            return false;
+        }
+
+        // file is required
+        if (!stringArgs[L"--file"].seen) {
+            LOG(L"%s", L"--file is required");
+            return false;
+        }
+
+        // show is required
+        if (!seenShow) {
+            LOG(L"%s", L"--show is required");
+            return false;
+        }
+
+        run = true;
+        return true;
     }
 
-    // mask options
-    // SEE_MASK_CLASSKEY TODO
-    // SEE_MASK_IDLIST TODO
-    // SEE_MASK_INVOKEIDLIST TODO
-    // SEE_MASK_ICON TODO
-    // SEE_MASK_HOTKEY TODO
-    // SEE_MASK_HMONITOR TODO
-    // SEE_MASK_FLAG_HINST_IS_SITE TODO
-
-    bool seenClass = false;
-    bool seenNoCloseProcess = false;
-    bool seenConnectNetworkDrive = false;
-    bool seenNoAsync = false;
-    bool seenDoEnvironmentSubstitution = false;
-    bool seenNoUi = false;
-    bool seenUnicode = false;
-    bool seenNoConsole = false;
-    bool seenAsyncOk = false;
-    bool seenNoQueryClassStore = false;
-    bool seenNoZoneChecks = false;
-    bool seenWaitForInputIdle = false;
-    bool seenLogUsage = false;
-    bool seenVerb = false;
-    bool seenFile = false;
-    bool seenParameters = false;
-    bool seenDirectory = false;
-    bool seenShow = false;
-
-    for (int i = 1; i < argc; i++) {
-        // --class-name
-        if (0 == _wcsicmp(argv[i], L"--class-name")) {
-            if (seenClass) {
-                LOG(L"%s", L"Multiple class arguments passed");
-                return false;
-            }
-            seenClass = true;
-
-            i++;
-            if (i == argc) {
-                LOG(L"%s", L"--class requires a value");
-                return false;
-            }
-
-            fMask |= SEE_MASK_CLASSNAME;
-            lpClass = argv[i];
-            continue;
-        }
-
-        // --no-close-process
-        if (0 == _wcsicmp(argv[i], L"--no-close-process")) {
-            if (seenNoCloseProcess) {
-                LOG(L"%s", L"Multiple --no-close-process arguments passed");
-                return false;
-            }
-            seenNoCloseProcess = true;
-
-            fMask |= SEE_MASK_NOCLOSEPROCESS;
-            continue;
-        }
-
-        // --connect-network-drive
-        if (0 == _wcsicmp(argv[i], L"--connect-network-drive")) {
-            if (seenConnectNetworkDrive) {
-                LOG(L"%s", L"Multiple --connect-network-drive arguments passed");
-                return false;
-            }
-            seenConnectNetworkDrive = true;
-
-            fMask |= SEE_MASK_CONNECTNETDRV;
-            continue;
-        }
-
-        // --no-async
-        if (0 == _wcsicmp(argv[i], L"--no-async")) {
-            if (seenNoAsync) {
-                LOG(L"%s", L"Multiple --no-async arguments passed");
-                return false;
-            }
-            seenNoAsync = true;
-
-            fMask |= SEE_MASK_NOASYNC;
-            continue;
-        }
-
-        // --do-environment-substitution
-        if (0 == _wcsicmp(argv[i], L"--do-environment-substitution")) {
-            if (seenDoEnvironmentSubstitution) {
-                LOG(L"%s", L"Multiple --do-environment-substitution arguments passed");
-                return false;
-            }
-            seenDoEnvironmentSubstitution = true;
-
-            fMask |= SEE_MASK_DOENVSUBST;
-            continue;
-        }
-
-        // --no-ui
-        if (0 == _wcsicmp(argv[i], L"--no-ui")) {
-            if (seenNoUi) {
-                LOG(L"%s", L"Multiple --no-ui arguments passed");
-                return false;
-            }
-            seenNoUi = true;
-
-            fMask |= SEE_MASK_FLAG_NO_UI;
-            continue;
-        }
-
-        // --unicode
-        if (0 == _wcsicmp(argv[i], L"--unicode")) {
-            if (seenUnicode) {
-                LOG(L"%s", L"Multiple --unicode arguments passed");
-                return false;
-            }
-            seenUnicode = true;
-
-            fMask |= SEE_MASK_UNICODE;
-            continue;
-        }
-
-        // --no-console
-        if (0 == _wcsicmp(argv[i], L"--no-console")) {
-            if (seenNoConsole) {
-                LOG(L"%s", L"Multiple --no-console arguments passed");
-                return false;
-            }
-            seenNoConsole = true;
-
-            fMask |= SEE_MASK_NO_CONSOLE;
-            continue;
-        }
-
-        // --async-ok
-        if (0 == _wcsicmp(argv[i], L"--async-ok")) {
-            if (seenAsyncOk) {
-                LOG(L"%s", L"Multiple --async-ok arguments passed");
-                return false;
-            }
-            seenAsyncOk = true;
-
-            fMask |= SEE_MASK_ASYNCOK;
-            continue;
-        }
-
-        // --no-zone-checks
-        if (0 == _wcsicmp(argv[i], L"--no-zone-checks")) {
-            if (seenNoZoneChecks) {
-                LOG(L"%s", L"Multiple --no-zone-checks arguments passed");
-                return false;
-            }
-            seenNoZoneChecks = true;
-
-            fMask |= SEE_MASK_NOZONECHECKS;
-            continue;
-        }
-
-        // --wait-for-input-idle
-        if (0 == _wcsicmp(argv[i], L"--wait-for-input-idle")) {
-            if (seenWaitForInputIdle) {
-                LOG(L"%s", L"Multiple --wait-for-input-idle arguments passed");
-                return false;
-            }
-            seenWaitForInputIdle = true;
-
-            fMask |= SEE_MASK_WAITFORINPUTIDLE;
-            continue;
-        }
-
-        // --log-usage
-        if (0 == _wcsicmp(argv[i], L"--log-usage")) {
-            if (seenLogUsage) {
-                LOG(L"%s", L"Multiple --log-usage arguments passed");
-                return false;
-            }
-            seenLogUsage = true;
-
-            fMask |= SEE_MASK_FLAG_LOG_USAGE;
-            continue;
-        }
-
-        // --no-query-class-store
-        if (0 == _wcsicmp(argv[i], L"--no-query-class-store")) {
-            if (seenNoQueryClassStore) {
-                LOG(L"%s", L"Multiple --no-query-class-store arguments passed");
-                return false;
-            }
-            seenNoQueryClassStore = true;
-
-            fMask |= SEE_MASK_NOQUERYCLASSSTORE;
-            continue;
-        }
-
-        // --verb
-        if (0 == _wcsicmp(argv[i], L"--verb")) {
-            if (seenVerb) {
-                LOG(L"%s", L"Multiple --verb arguments passed");
-                return false;
-            }
-            seenVerb = true;
-
-            i++;
-            if (i == argc) {
-                LOG(L"%s", L"--verb requires a value");
-                return false;
-            }
-
-            lpVerb = argv[i];
-            continue;
-        }
-
-        // --file
-        if (0 == _wcsicmp(argv[i], L"--file")) {
-            if (seenFile) {
-                LOG(L"%s", L"Multiple --file arguments passed");
-                return false;
-            }
-            seenFile = true;
-
-            i++;
-            if (i == argc) {
-                LOG(L"%s", L"--file requires a value");
-                return false;
-            }
-
-            lpFile = argv[i];
-            continue;
-        }
-
-        // --parameters
-        if (0 == _wcsicmp(argv[i], L"--parameters")) {
-            if (seenParameters) {
-                LOG(L"%s", L"Multiple --parameters arguments passed");
-                return false;
-            }
-            seenParameters = true;
-
-            i++;
-            if (i == argc) {
-                LOG(L"%s", L"--parameters requires a value");
-                return false;
-            }
-
-            lpParameters = argv[i];
-            continue;
-        }
-
-        // --directory
-        if (0 == _wcsicmp(argv[i], L"--directory")) {
-            if (seenDirectory) {
-                LOG(L"%s", L"Multiple --directory arguments passed");
-                return false;
-            }
-            seenDirectory = true;
-
-            i++;
-            if (i == argc) {
-                LOG(L"%s", L"--directory requires a value");
-                return false;
-            }
-
-            lpDirectory = argv[i];
-            continue;
-        }
-
-        // --show
-        if (0 == _wcsicmp(argv[i], L"--show")) {
-            if (seenShow) {
-                LOG(L"%s", L"Multiple --show arguments passed");
-                return false;
-            }
-            seenShow = true;
-
-            i++;
-            if (i == argc) {
-                LOG(L"%s", L"--show requires a value");
-                return false;
-            }
-
-            bool found = false;
-            nShow = ShowInt_From_String(argv[i], found);
-            if (!found) {
-                LOG(L"%s", L"Unrecognized value for --show");
-                return false;
-            }
-            continue;
-        }
-
-        // any other argument
-        LOG(L"Unrecognized argument %s", argv[i]);
-        return false;
-    }
-
-    // file is required
-    if (!seenFile) {
-        LOG(L"%s", L"--file is required");
-        return false;
-    }
-
-    // show is required
-    if (!seenShow) {
-        LOG(L"%s", L"--show is required");
-        return false;
-    }
-
-    run = true;
-    return true;
+    // unreachable
 }
 
 bool Prefs::IsUsage(int argc, LPCWSTR argv[]) {
@@ -362,7 +217,7 @@ void Prefs::ShowUsage() {
     LOG(L"%s", L"    --file <file>");
     LOG(L"%s", L"    [--parameters <parameters>]");
     LOG(L"%s", L"    [--directory <directory>]");
-    LOG(L"%s", L"    [--show <show-options>]");
+    LOG(L"%s", L"    --show <show-options>");
     LOG(L"%s", L"    [--class-name <class-name>]");
     LOG(L"%s", L"    [--no-close-process]");
     LOG(L"%s", L"    [--connect-network-drive]");
