@@ -80,7 +80,7 @@ jobs:
           }
 
       - name: Upload coverage reports
-        if: matrix.arch == 'x64' && (success() || failure())
+        if: matrix.is-coverage && (success() || failure())
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
