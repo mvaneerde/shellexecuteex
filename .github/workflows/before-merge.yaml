@@ -11,3 +11,11 @@ jobs:
       build-dir: private-branch-build
       version-str: "0.0.0"
       coverage-threshold: "99.9"
+
+  all-checks-passed:
+    name: All Builds and Tests Passed
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Success
+        run: echo "All matrix builds and coverage checks passed successfully."
