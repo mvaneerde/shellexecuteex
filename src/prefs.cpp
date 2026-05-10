@@ -239,6 +239,7 @@ void Prefs::ShowUsage() {
     LOG(L"%s", L"    [--no-ui]");
     LOG(L"%s", L"    [--no-zone-checks]");
     LOG(L"%s", L"    [--parameters <parameters>]");
+    LOG(L"%s", L"    [--relay-exit-code]");
     LOG(L"%s", L"    [--show <show-options>]");
     LOG(L"%s", L"    [--unicode]");
     LOG(L"%s", L"    [--verb <verb>]");
