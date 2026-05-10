@@ -61,6 +61,12 @@ jobs:
           name: main-build-arm64
           path: build-arm64
 
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report
+
       - name: Verify artifacts contain executables
         shell: pwsh
         run: |
@@ -145,6 +151,12 @@ jobs:
               -Destination $subdir `
               -Recurse
           }
+
+          # Include the full code coverage report in the release package
+          Copy-Item `
+            -Path "coverage-report/coverage_report" `
+            -Destination (Join-Path $packageDir "coverage") `
+            -Recurse
               
           $zipPath = Join-Path $releaseDir "ShellExecuteEx-${{ needs.version.outputs.version }}.zip"
           Compress-Archive -Path $packageDir -DestinationPath $zipPath -Force

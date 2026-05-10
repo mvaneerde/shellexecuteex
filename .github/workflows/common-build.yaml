@@ -9,6 +9,10 @@ on:
       version-str:
         required: true
         type: string
+      coverage-threshold:
+        required: false
+        type: string
+        default: '0'
 
 jobs:
   build:
@@ -45,3 +49,24 @@ jobs:
           path: |
             ${{ inputs['build-dir'] }}-${{ matrix.arch }}/RelWithDebInfo/*.exe
             ${{ inputs['build-dir'] }}-${{ matrix.arch }}/RelWithDebInfo/*.pdb
+
+      - name: Run code coverage
+        if: matrix.arch == 'x64'
+        run: |
+          choco install opencppcoverage -y --no-progress
+          & "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
+            --sources ${{ github.workspace }}\src `
+            --export_type cobertura:coverage.xml `
+            --export_type html:coverage_report `
+            --threshold ${{ inputs['coverage-threshold'] }} `
+            -- `
+            ${{ inputs['build-dir'] }}-${{ matrix.arch }}\RelWithDebInfo\tests.exe
+
+      - name: Upload coverage reports
+        if: matrix.arch == 'x64' && (success() || failure())
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            coverage_report
