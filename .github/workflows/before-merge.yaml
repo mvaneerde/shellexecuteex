@@ -10,4 +10,4 @@ jobs:
     with:
       build-dir: private-branch-build
       version-str: "0.0.0"
-      coverage-threshold: "90"
+      coverage-threshold: "99.9"

@@ -58,9 +58,19 @@ jobs:
             --sources ${{ github.workspace }}\src `
             --export_type cobertura:coverage.xml `
             --export_type html:coverage_report `
-            --threshold ${{ inputs['coverage-threshold'] }} `
             -- `
             ${{ inputs['build-dir'] }}-${{ matrix.arch }}\RelWithDebInfo\tests.exe
+
+          [xml]$xml = Get-Content coverage.xml -Raw
+          $lineRate = [float]$xml.coverage.'line-rate'
+          $percent = $lineRate * 100
+          $threshold = [float]${{ inputs['coverage-threshold'] }}
+          
+          Write-Host "Code Coverage: $percent% (Threshold: $threshold%)"
+          if ($percent -lt $threshold) {
+              Write-Error "Code coverage ($percent%) is below the required threshold ($threshold%)"
+              exit 1
+          }
 
       - name: Upload coverage reports
         if: matrix.arch == 'x64' && (success() || failure())
