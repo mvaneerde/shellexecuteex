@@ -69,13 +69,12 @@ jobs:
             ${{ inputs['build-dir'] }}-${{ matrix.arch }}\${{ matrix.config }}\tests.exe
 
           [xml]$xml = Get-Content coverage.xml -Raw
-          $lineRate = [float]$xml.coverage.'line-rate'
-          $percent = $lineRate * 100
+          $percent = ([float]$xml.coverage.'line-rate') * 100
           $threshold = [float]${{ inputs['coverage-threshold'] }}
-          
-          Write-Host "Code Coverage: $percent% (Threshold: $threshold%)"
+
+          Write-Host ("Code Coverage: {0:G6}% (Threshold: {1:G6}%)" -f $percent, $threshold)
           if ($percent -lt $threshold) {
-              Write-Error "Code coverage ($percent%) is below the required threshold ($threshold%)"
+              Write-Error ("Code coverage ({0:G6}%) is below the required threshold ({1:G6}%)" -f $percent, $threshold)
               exit 1
           }
 
