@@ -20,162 +20,180 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
         ShowUsage();
         run = false;
         return true;
-    } else {
-        // some arguments just set a flag
-        class FlagArg {
-        public:
-            ULONG flag;
-            bool seen;
-
-            FlagArg() : flag(0), seen(false) {}
-            FlagArg(ULONG f) : flag(f), seen(false) {}
-        };
-
-        struct StringCompare {
-            bool operator()(LPCWSTR a, LPCWSTR b) const {
-                return _wcsicmp(a, b) < 0;
-            }
-        };
-
-        std::map<LPCWSTR, FlagArg, StringCompare> flagArgs = {
-            { L"--async-ok", FlagArg(SEE_MASK_ASYNCOK) },
-            { L"--connect-network-drive", FlagArg(SEE_MASK_CONNECTNETDRV) },
-            { L"--do-environment-substitution", FlagArg(SEE_MASK_DOENVSUBST) },
-            { L"--log-usage", FlagArg(SEE_MASK_FLAG_LOG_USAGE) },
-            { L"--no-async", FlagArg(SEE_MASK_NOASYNC) },
-            { L"--no-close-process", FlagArg(SEE_MASK_NOCLOSEPROCESS) },
-            { L"--no-console", FlagArg(SEE_MASK_NO_CONSOLE) },
-            { L"--no-query-class-store", FlagArg(SEE_MASK_NOQUERYCLASSSTORE) },
-            { L"--no-ui", FlagArg(SEE_MASK_FLAG_NO_UI) },
-            { L"--no-zone-checks", FlagArg(SEE_MASK_NOZONECHECKS) },
-            { L"--unicode", FlagArg(SEE_MASK_UNICODE) },
-            { L"--wait-for-input-idle", FlagArg(SEE_MASK_WAITFORINPUTIDLE) },
-        };
-
-        // some arguments just set a string
-        class StringArg {
-        public:
-            LPCWSTR *setting;
-            bool seen;
-
-            StringArg() : setting(nullptr), seen(false) {}
-            StringArg(LPCWSTR *s) : setting(s), seen(false) {}
-        };
-        
-        std::map<LPCWSTR, StringArg, StringCompare> stringArgs = {
-            { L"--directory", StringArg(&lpDirectory) },
-            { L"--file", StringArg(&lpFile) },
-            { L"--parameters", StringArg(&lpParameters) },
-            { L"--verb", StringArg(&lpVerb) },
-        };
-
-        // mask options
-        // SEE_MASK_CLASSKEY TODO
-        // SEE_MASK_IDLIST TODO
-        // SEE_MASK_INVOKEIDLIST TODO
-        // SEE_MASK_ICON TODO
-        // SEE_MASK_HOTKEY TODO
-        // SEE_MASK_HMONITOR TODO
-        // SEE_MASK_FLAG_HINST_IS_SITE TODO
-
-        bool seenClass = false;
-        bool seenShow = false;
-
-        for (int i = 1; i < argc; i++) {
-            // flag arguments
-            {
-                auto it = flagArgs.find(argv[i]);
-                if (it != flagArgs.end()) {
-                    FlagArg &arg = it->second;
-                    if (arg.seen) {
-                        LOG(L"Multiple %s arguments passed", it->first);
-                        return false;
-                    }
-                    arg.seen = true;
-                    fMask |= arg.flag;
-                    continue;
-                }
-            }
-
-            // string arguments
-            {
-                auto it = stringArgs.find(argv[i]);
-                if (it != stringArgs.end()) {
-                    StringArg &arg = it->second;
-                    if (arg.seen) {
-                        LOG(L"Multiple %s arguments passed", it->first);
-                        return false;
-                    }
-                    arg.seen = true;
-
-                    if (++i == argc) {
-                        LOG(L"%s requires a value", it->first);
-                        return false;
-                    }
-
-                    *arg.setting = argv[i];
-                    continue;
-                }
-            }
-
-            // --class-name
-            if (0 == _wcsicmp(argv[i], L"--class-name")) {
-                if (seenClass) {
-                    LOG(L"%s", L"Multiple class arguments passed");
-                    return false;
-                }
-                seenClass = true;
-
-                i++;
-                if (i == argc) {
-                    LOG(L"%s", L"--class-name requires a value");
-                    return false;
-                }
-
-                fMask |= SEE_MASK_CLASSNAME;
-                lpClass = argv[i];
-                continue;
-            }
-
-            // --show
-            if (0 == _wcsicmp(argv[i], L"--show")) {
-                if (seenShow) {
-                    LOG(L"%s", L"Multiple --show arguments passed");
-                    return false;
-                }
-                seenShow = true;
-
-                i++;
-                if (i == argc) {
-                    LOG(L"%s", L"--show requires a value");
-                    return false;
-                }
-
-                bool found = false;
-                nShow = ShowInt_From_String(argv[i], found);
-                if (!found) {
-                    LOG(L"%s", L"Unrecognized value for --show");
-                    return false;
-                }
-                continue;
-            }
-
-            // any other argument
-            LOG(L"Unrecognized argument %s", argv[i]);
-            return false;
-        }
-
-        // file is required
-        if (!stringArgs[L"--file"].seen) {
-            LOG(L"%s", L"--file is required");
-            return false;
-        }
-
-        run = true;
-        return true;
     }
 
-    // unreachable
+    // some arguments just set a flag
+    class FlagArg {
+    public:
+        ULONG flag;
+        bool seen;
+
+        FlagArg() : flag(0), seen(false) {}
+        FlagArg(ULONG f) : flag(f), seen(false) {}
+    };
+
+    struct StringCompare {
+        bool operator()(LPCWSTR a, LPCWSTR b) const {
+            return _wcsicmp(a, b) < 0;
+        }
+    };
+
+    std::map<LPCWSTR, FlagArg, StringCompare> flagArgs = {
+        { L"--async-ok", FlagArg(SEE_MASK_ASYNCOK) },
+        { L"--connect-network-drive", FlagArg(SEE_MASK_CONNECTNETDRV) },
+        { L"--do-environment-substitution", FlagArg(SEE_MASK_DOENVSUBST) },
+        { L"--log-usage", FlagArg(SEE_MASK_FLAG_LOG_USAGE) },
+        { L"--no-async", FlagArg(SEE_MASK_NOASYNC) },
+        { L"--no-close-process", FlagArg(SEE_MASK_NOCLOSEPROCESS) },
+        { L"--no-console", FlagArg(SEE_MASK_NO_CONSOLE) },
+        { L"--no-query-class-store", FlagArg(SEE_MASK_NOQUERYCLASSSTORE) },
+        { L"--no-ui", FlagArg(SEE_MASK_FLAG_NO_UI) },
+        { L"--no-zone-checks", FlagArg(SEE_MASK_NOZONECHECKS) },
+        { L"--unicode", FlagArg(SEE_MASK_UNICODE) },
+        { L"--wait-for-input-idle", FlagArg(SEE_MASK_WAITFORINPUTIDLE) },
+    };
+
+    // some arguments just set a string
+    class StringArg {
+    public:
+        LPCWSTR *setting;
+        bool seen;
+
+        StringArg() : setting(nullptr), seen(false) {}
+        StringArg(LPCWSTR *s) : setting(s), seen(false) {}
+    };
+    
+    std::map<LPCWSTR, StringArg, StringCompare> stringArgs = {
+        { L"--directory", StringArg(&lpDirectory) },
+        { L"--file", StringArg(&lpFile) },
+        { L"--parameters", StringArg(&lpParameters) },
+        { L"--verb", StringArg(&lpVerb) },
+    };
+
+    // mask options
+    // SEE_MASK_CLASSKEY TODO
+    // SEE_MASK_IDLIST TODO
+    // SEE_MASK_INVOKEIDLIST TODO
+    // SEE_MASK_ICON TODO
+    // SEE_MASK_HOTKEY TODO
+    // SEE_MASK_HMONITOR TODO
+    // SEE_MASK_FLAG_HINST_IS_SITE TODO
+
+    bool seenClass = false;
+    bool seenRelayExitCode = false;
+    bool seenShow = false;
+
+    for (int i = 1; i < argc; i++) {
+        // flag arguments
+        {
+            auto it = flagArgs.find(argv[i]);
+            if (it != flagArgs.end()) {
+                FlagArg &arg = it->second;
+                if (arg.seen) {
+                    LOG(L"Multiple %s arguments passed", it->first);
+                    return false;
+                }
+                arg.seen = true;
+                fMask |= arg.flag;
+                continue;
+            }
+        }
+
+        // string arguments
+        {
+            auto it = stringArgs.find(argv[i]);
+            if (it != stringArgs.end()) {
+                StringArg &arg = it->second;
+                if (arg.seen) {
+                    LOG(L"Multiple %s arguments passed", it->first);
+                    return false;
+                }
+                arg.seen = true;
+
+                if (++i == argc) {
+                    LOG(L"%s requires a value", it->first);
+                    return false;
+                }
+
+                *arg.setting = argv[i];
+                continue;
+            }
+        }
+
+        // --class-name
+        if (0 == _wcsicmp(argv[i], L"--class-name")) {
+            if (seenClass) {
+                LOG(L"%s", L"Multiple class arguments passed");
+                return false;
+            }
+            seenClass = true;
+
+            i++;
+            if (i == argc) {
+                LOG(L"%s", L"--class-name requires a value");
+                return false;
+            }
+
+            fMask |= SEE_MASK_CLASSNAME;
+            lpClass = argv[i];
+            continue;
+        }
+
+        // --relay-exit-code
+        if (0 == _wcsicmp(argv[i], L"--relay-exit-code")) {
+            if (seenRelayExitCode) {
+                LOG(L"%s", L"Multiple --relay-exit-code arguments passed");
+                return false;
+            }                
+            seenRelayExitCode = true;
+            
+            m_relayExitCode = true;
+            continue;
+        }
+
+        // --show
+        if (0 == _wcsicmp(argv[i], L"--show")) {
+            if (seenShow) {
+                LOG(L"%s", L"Multiple --show arguments passed");
+                return false;
+            }
+            seenShow = true;
+
+            i++;
+            if (i == argc) {
+                LOG(L"%s", L"--show requires a value");
+                return false;
+            }
+
+            bool found = false;
+            nShow = ShowInt_From_String(argv[i], found);
+            if (!found) {
+                LOG(L"%s", L"Unrecognized value for --show");
+                return false;
+            }
+            continue;
+        }
+
+        // any other argument
+        LOG(L"Unrecognized argument %s", argv[i]);
+        return false;
+    }
+
+    // --file is required
+    if (!stringArgs[L"--file"].seen) {
+        LOG(L"%s", L"--file is required");
+        return false;
+    }
+
+    // --relay-exit-code requires --no-close-process
+    if (seenRelayExitCode &&
+        !flagArgs[L"--no-close-process"].seen) {
+        LOG(L"%s", L"--relay-exit-code requires --no-close-process");
+        return false;
+    }
+
+    run = true;
+    return true;
 }
 
 bool Prefs::IsUsage(int argc, LPCWSTR argv[]) {
@@ -244,6 +262,10 @@ void Prefs::LogResult(BOOL result, DWORD error) {
         LOG(L"Last error: %d", error);
     }
     LOG(L"hInstApp: 0x%p", hInstApp);
+}
+
+bool Prefs::RelayExitCode() {
+    return m_relayExitCode;
 }
 
 int Prefs::ShowInt_From_String(LPCWSTR s, bool &found) {
