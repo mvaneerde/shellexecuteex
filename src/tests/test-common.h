@@ -20,7 +20,9 @@ void ExpectEq_ShellExecuteInfoW(
     
 class MockWindowsApi : public IWindowsApi {
 public:
+    MOCK_METHOD(HRESULT, CoInitializeEx, (LPVOID reserved, DWORD coinit), (override));
+    MOCK_METHOD(BOOL, CloseHandle, (HANDLE h), (override));
+    MOCK_METHOD(void, CoUninitialize, (), (override));
     MOCK_METHOD(HWND, GetConsoleWindow, (), (override));
-    MOCK_METHOD(BOOL, CloseHandle, (HANDLE hObject), (override));
-    MOCK_METHOD(BOOL, ShellExecuteExW, (LPSHELLEXECUTEINFOW lpExecInfo), (override));
+    MOCK_METHOD(BOOL, ShellExecuteExW, (LPSHELLEXECUTEINFOW info), (override));
 };

@@ -35,6 +35,7 @@ configure_file(
 # build code into a library that can be consumed by the product and tests
 add_library(
     shellexecuteex_lib
+    cleanup.cpp
     main-internal.cpp
     prefs.cpp
     windows-api.cpp
@@ -70,6 +71,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(
     tests
+    tests/main-coinitialize.cpp
     tests/main-return.cpp
     tests/prefs-api.cpp
     tests/prefs-flags.cpp
