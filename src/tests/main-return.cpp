@@ -124,6 +124,7 @@ TEST(Main, RelayExitCode_NullProcessHandle) {
     EXPECT_CALL(api, CloseHandle(_)).Times(0);
     EXPECT_CALL(api, CoUninitialize()).Times(1);
     EXPECT_CALL(api, GetConsoleWindow()).Times(1);
+    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
     EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(TRUE));
 
     LPCWSTR argv[] = {
@@ -134,6 +135,75 @@ TEST(Main, RelayExitCode_NullProcessHandle) {
     };
 
     EXPECT_NE(0, wmain_internal(
+        _countof(argv),
+        argv,
+        &api
+    ));
+}
+
+// verify relaying an exit code returns a failure
+// if GetExitCodeProcess fails
+TEST(Main, RelayExitCode_GetExitCodeProcess_Fails) {
+    MockWindowsApi api;
+
+    EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Return(S_OK));
+    EXPECT_CALL(api, CloseHandle(_)).Times(1);
+    EXPECT_CALL(api, CoUninitialize()).Times(1);
+    EXPECT_CALL(api, GetConsoleWindow()).Times(1);
+    EXPECT_CALL(api, GetExitCodeProcess(_, _))
+        .WillOnce(Invoke([](HANDLE, LPDWORD exitCode) {
+            SetLastError(12345);
+            return FALSE;
+        }));
+    EXPECT_CALL(api, ShellExecuteExW(_))
+        .WillOnce(Invoke([](SHELLEXECUTEINFOW* info){
+            info->hProcess = reinterpret_cast<HANDLE>(0x1);
+            return TRUE;
+        }));
+    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
+
+    LPCWSTR argv[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"notepad.exe",
+        L"--no-close-process",
+        L"--relay-exit-code"
+    };
+
+    EXPECT_EQ(12345, wmain_internal(
+        _countof(argv),
+        argv,
+        &api
+    ));
+}
+
+// verify relaying an exit code returns the process's exit code
+TEST(Main, RelayExitCode_ChildProcess_Fails) {
+    MockWindowsApi api;
+
+    EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Return(S_OK));
+    EXPECT_CALL(api, CloseHandle(_)).Times(1);
+    EXPECT_CALL(api, CoUninitialize()).Times(1);
+    EXPECT_CALL(api, GetConsoleWindow()).Times(1);
+    EXPECT_CALL(api, GetExitCodeProcess(_, _))
+        .WillOnce(Invoke([](HANDLE, LPDWORD exitCode) {
+            *exitCode = 12345;
+            return TRUE;
+        }));
+    EXPECT_CALL(api, ShellExecuteExW(_))
+        .WillOnce(Invoke([](SHELLEXECUTEINFOW* info){
+            info->hProcess = reinterpret_cast<HANDLE>(0x1);
+            return TRUE;
+        }));
+    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
+
+    LPCWSTR argv[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"notepad.exe",
+        L"--no-close-process",
+        L"--relay-exit-code"
+    };
+
+    EXPECT_EQ(12345, wmain_internal(
         _countof(argv),
         argv,
         &api
