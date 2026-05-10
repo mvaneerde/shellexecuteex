@@ -70,6 +70,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(
     tests
+    tests/main-coinitialize.cpp
     tests/main-return.cpp
     tests/prefs-api.cpp
     tests/prefs-flags.cpp
