@@ -28,7 +28,6 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
         ULONG flag;
         bool seen;
 
-        FlagArg() : flag(0), seen(false) {}
         FlagArg(ULONG f) : flag(f), seen(false) {}
     };
 
@@ -59,7 +58,6 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
         LPCWSTR *setting;
         bool seen;
 
-        StringArg() : setting(nullptr), seen(false) {}
         StringArg(LPCWSTR *s) : setting(s), seen(false) {}
     };
     
@@ -180,14 +178,14 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
     }
 
     // --file is required
-    if (!stringArgs[L"--file"].seen) {
+    if (!stringArgs.at(L"--file").seen) {
         LOG(L"%s", L"--file is required");
         return false;
     }
 
     // --relay-exit-code requires --no-close-process
     if (seenRelayExitCode &&
-        !flagArgs[L"--no-close-process"].seen) {
+        !flagArgs.at(L"--no-close-process").seen) {
         LOG(L"%s", L"--relay-exit-code requires --no-close-process");
         return false;
     }
