@@ -16,6 +16,14 @@ HWND WindowsApi::GetConsoleWindow() {
     return ::GetConsoleWindow();
 }
 
+BOOL WindowsApi::GetExitCodeProcess(HANDLE process, LPDWORD exitCode) {
+    return ::GetExitCodeProcess(process, exitCode);
+}
+
 BOOL WindowsApi::ShellExecuteExW(LPSHELLEXECUTEINFOW info) {
     return ::ShellExecuteExW(info);
+}
+
+DWORD WindowsApi::WaitForSingleObject(HANDLE h, DWORD milliseconds) {
+    return ::WaitForSingleObject(h, milliseconds);
 }

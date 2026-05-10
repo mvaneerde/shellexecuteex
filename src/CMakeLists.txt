@@ -75,6 +75,7 @@ add_executable(
     tests/main-return.cpp
     tests/prefs-api.cpp
     tests/prefs-flags.cpp
+    tests/prefs-relay-exit-code.cpp
     tests/prefs-scenarios.cpp
     tests/prefs-show.cpp
     tests/prefs-string-arguments.cpp

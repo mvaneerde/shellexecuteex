@@ -6,9 +6,11 @@ public:
     ~Prefs();
     bool Parse(int argc, LPCWSTR argv[], bool &run);
     void LogResult(BOOL result, DWORD error);
+    bool RelayExitCode();
 
 private:
-    IWindowsApi *m_api;
+    IWindowsApi *m_api = nullptr;
+    bool m_relayExitCode = false;
 
     static bool IsUsage(int argc, LPCWSTR argv[]);
     static void ShowUsage();

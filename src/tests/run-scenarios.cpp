@@ -23,3 +23,25 @@ TEST(Run, Cmd_Echo_1) {
     ASSERT_NE(nullptr, prefs.hProcess);
     EXPECT_EQ(WAIT_OBJECT_0, WaitForSingleObject(prefs.hProcess, INFINITE));
 }
+
+TEST(Run, Cmd_Exit_12345) {
+    // call cmd.exe /c exit 12345
+    // with --no-close-process
+    // wait on it to return
+    // verify the exit code from main is 12345
+    WindowsApi api;
+    Prefs prefs(&api);
+    LPCWSTR argv[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"cmd.exe",
+        L"--parameters", L"/c exit 12345",
+        L"--show", L"SW_MINIMIZE",
+        L"--no-close-process",
+        L"--relay-exit-code"
+    };
+    EXPECT_EQ(12345, wmain_internal(
+        _countof(argv),
+        argv,
+        &api
+    ));
+}
