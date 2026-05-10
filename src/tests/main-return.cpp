@@ -114,3 +114,28 @@ TEST(Main, InvalidParameter) {
         &api
     ));
 }
+
+// if we ask to relay the exit code
+// but the process handle is null
+// then main should return a failure
+TEST(Main, RelayExitCode_NullProcessHandle) {
+    MockWindowsApi api;
+    EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Return(S_OK));
+    EXPECT_CALL(api, CloseHandle(_)).Times(0);
+    EXPECT_CALL(api, CoUninitialize()).Times(1);
+    EXPECT_CALL(api, GetConsoleWindow()).Times(1);
+    EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(TRUE));
+
+    LPCWSTR argv[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"notepad.exe",
+        L"--no-close-process",
+        L"--relay-exit-code"
+    };
+
+    EXPECT_NE(0, wmain_internal(
+        _countof(argv),
+        argv,
+        &api
+    ));
+}
