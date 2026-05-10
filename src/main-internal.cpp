@@ -31,5 +31,24 @@ int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
     }
 
     p.LogResult(TRUE, ERROR_SUCCESS);
+
+    if (p.RelayExitCode()) {
+        if (nullptr == p.hProcess) {
+            LOG(L"%s", L"Can't relay exit code because process handle is null");
+            return ERROR_INVALID_HANDLE;
+        }
+
+        api->WaitForSingleObject(p.hProcess, INFINITE);
+        DWORD exitCode = 0;
+        if (!api->GetExitCodeProcess(p.hProcess, &exitCode)) {
+            DWORD error = GetLastError();
+            LOG(L"GetExitCodeProcess failed: 0x%08x", error);
+            return error;
+        }
+
+        LOG(L"Child process returned %d", exitCode);
+        return exitCode;
+    }
+
     return 0;
 }
