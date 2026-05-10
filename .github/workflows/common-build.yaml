@@ -9,6 +9,10 @@ on:
       version-str:
         required: true
         type: string
+      coverage-threshold:
+        required: false
+        type: string
+        default: '0'
 
 jobs:
   build:
@@ -19,8 +23,14 @@ jobs:
         include:
           - os: windows-latest
             arch: x64
+            config: RelWithDebInfo
           - os: windows-11-arm
             arch: arm64
+            config: RelWithDebInfo
+          - os: windows-latest
+            arch: x64
+            config: Debug
+            is-coverage: true
 
     steps:
       - name: Checkout source
@@ -33,15 +43,46 @@ jobs:
           -DPROJECT_VERSION="${{ inputs['version-str'] }}"
 
       - name: Build
-        run: cmake --build ${{ inputs['build-dir'] }}-${{ matrix.arch }} --config RelWithDebInfo
+        run: cmake --build ${{ inputs['build-dir'] }}-${{ matrix.arch }} --config ${{ matrix.config }}
 
       - name: Run tests
-        run: ctest --test-dir ${{ inputs['build-dir'] }}-${{ matrix.arch }} -C RelWithDebInfo --output-on-failure
+        run: ctest --test-dir ${{ inputs['build-dir'] }}-${{ matrix.arch }} -C ${{ matrix.config }} --output-on-failure
 
       - name: Upload binaries
+        if: "!matrix.is-coverage"
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs['build-dir'] }}-${{ matrix.arch }}
           path: |
-            ${{ inputs['build-dir'] }}-${{ matrix.arch }}/RelWithDebInfo/*.exe
-            ${{ inputs['build-dir'] }}-${{ matrix.arch }}/RelWithDebInfo/*.pdb
+            ${{ inputs['build-dir'] }}-${{ matrix.arch }}/${{ matrix.config }}/*.exe
+            ${{ inputs['build-dir'] }}-${{ matrix.arch }}/${{ matrix.config }}/*.pdb
+
+      - name: Run code coverage
+        if: matrix.is-coverage
+        run: |
+          choco install opencppcoverage -y --no-progress
+          & "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
+            --sources ${{ github.workspace }}\src `
+            --export_type cobertura:coverage.xml `
+            --export_type html:coverage_report `
+            -- `
+            ${{ inputs['build-dir'] }}-${{ matrix.arch }}\${{ matrix.config }}\tests.exe
+
+          [xml]$xml = Get-Content coverage.xml -Raw
+          $percent = ([float]$xml.coverage.'line-rate') * 100
+          $threshold = [float]${{ inputs['coverage-threshold'] }}
+
+          Write-Host ("Code Coverage: {0:G6}% (Threshold: {1:G6}%)" -f $percent, $threshold)
+          if ($percent -lt $threshold) {
+              Write-Error ("Code coverage ({0:G6}%) is below the required threshold ({1:G6}%)" -f $percent, $threshold)
+              exit 1
+          }
+
+      - name: Upload coverage reports
+        if: matrix.is-coverage && (success() || failure())
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            coverage_report
