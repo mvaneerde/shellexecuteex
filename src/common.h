@@ -7,5 +7,6 @@
 
 #include "log.h"
 #include "windows-api.h"
+#include "cleanup.h"
 #include "prefs.h"
 #include "main-internal.h"
