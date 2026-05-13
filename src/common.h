@@ -2,6 +2,8 @@
 #include <map>
 
 #include <wtypes.h>
+#include <shtypes.h>
+#include <shlobj_core.h>
 #include <shellapi.h>
 #include <stdio.h>
 
