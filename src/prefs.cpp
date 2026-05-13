@@ -12,6 +12,10 @@ Prefs::~Prefs() {
     if (hProcess != nullptr) {
         m_api->CloseHandle(hProcess);
     }
+
+    if (lpIDList != nullptr) {
+        m_api->CoTaskMemFree(lpIDList);
+    }
 }
 
 bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
@@ -80,6 +84,7 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
     bool seenClass = false;
     bool seenRelayExitCode = false;
     bool seenShow = false;
+    bool seenShellDisplayName = false;
 
     for (int i = 1; i < argc; i++) {
         // flag arguments
@@ -149,6 +154,35 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             continue;
         }
 
+        // --shell-display-name
+        if (0 == _wcsicmp(argv[i], L"--shell-display-name")) {
+            if (seenShellDisplayName) {
+                LOG(L"%s", L"Multiple --shell-display-name arguments passed");
+                return false;
+            }
+            seenShellDisplayName = true;
+
+            i++;
+            if (i == argc) {
+                LOG(L"%s", L"--shell-display-name requires a value");
+                return false;
+            }
+
+            fMask |= SEE_MASK_IDLIST;
+
+            HRESULT hr = m_api->SHParseDisplayName(
+                argv[i],
+                nullptr,
+                reinterpret_cast<LPITEMIDLIST*>(&lpIDList),
+                0,
+                nullptr);
+            if (FAILED(hr)) { 
+                LOG(L"SHParseDisplayName failed: 0x%08x", hr);
+                return false;
+            }
+            continue;
+        }
+
         // --show
         if (0 == _wcsicmp(argv[i], L"--show")) {
             if (seenShow) {
@@ -177,9 +211,10 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
         return false;
     }
 
-    // --file is required
-    if (!stringArgs.at(L"--file").seen) {
-        LOG(L"%s", L"--file is required");
+    if (1 !=
+        (stringArgs.at(L"--file").seen ? 1 : 0) +
+        (seenShellDisplayName ? 1 : 0)) {
+        LOG(L"%s", L"Specify either --file or --shell-display-name but not both");
         return false;
     }
 
@@ -223,7 +258,7 @@ void Prefs::ShowUsage() {
     LOG(L"%s", L"    show usage");
     LOG(L"%s", L"");
     LOG(L"%s", L"shellexecute.exe");
-    LOG(L"%s", L"    --file <file>");
+    LOG(L"%s", L"    [--file <file> | --shell-display-name <shell-display-name>]");
     LOG(L"%s", L"    [--async-ok]");
     LOG(L"%s", L"    [--class-name <class-name>]");
     LOG(L"%s", L"    [--connect-network-drive]");
