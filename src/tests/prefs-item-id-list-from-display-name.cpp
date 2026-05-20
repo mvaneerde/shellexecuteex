@@ -1,11 +1,11 @@
 #include "test-common.h"
 
-TEST(Prefs, ShellDisplayName_Missing_Argument) {
+TEST(Prefs, ItemIdListFromDisplayName_Missing_Argument) {
     WindowsApi api;
 
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
-        L"--shell-display-name",
+        L"--item-id-list-from-display-name",
     };
 
     Prefs p(&api);
@@ -14,13 +14,13 @@ TEST(Prefs, ShellDisplayName_Missing_Argument) {
     // no expectation on run
 }
 
-TEST(Prefs, ShellDisplayName_And_File) {
+TEST(Prefs, ItemIdListFromDisplayName_And_File) {
     WindowsApi api;
 
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
         L"--file", L"notepad.exe",
-        L"--shell-display-name", L"::{645FF040-5081-101B-9F08-00AA002F954E}",
+        L"--item-id-list-from-display-name", L"::{645FF040-5081-101B-9F08-00AA002F954E}",
     };
 
     Prefs p(&api);
@@ -29,13 +29,13 @@ TEST(Prefs, ShellDisplayName_And_File) {
     // no expectation on run
 }
 
-TEST(Prefs, ShellDisplayName_Twice) {
+TEST(Prefs, ItemIdListFromDisplayName_Twice) {
     WindowsApi api;
 
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
-        L"--shell-display-name", L"::{645FF040-5081-101B-9F08-00AA002F954E}",
-        L"--shell-display-name", L"::{645FF040-5081-101B-9F08-00AA002F954E}",
+        L"--item-id-list-from-display-name", L"::{645FF040-5081-101B-9F08-00AA002F954E}",
+        L"--item-id-list-from-display-name", L"::{645FF040-5081-101B-9F08-00AA002F954E}",
     };
 
     Prefs p(&api);
@@ -44,13 +44,12 @@ TEST(Prefs, ShellDisplayName_Twice) {
     // no expectation on run
 }
 
-TEST(Prefs, ShellDisplayName_CanonicalName) {
+TEST(Prefs, ItemIdListFromDisplayName_CanonicalName) {
     WindowsApi api;
 
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
-        // canonical name for the Recycle Bin folder
-        L"--shell-display-name", L"::{645FF040-5081-101B-9F08-00AA002F954E}",
+        L"--item-id-list-from-display-name", L"::{645FF040-5081-101B-9F08-00AA002F954E}",
     };
 
     Prefs p(&api);
@@ -61,13 +60,12 @@ TEST(Prefs, ShellDisplayName_CanonicalName) {
     EXPECT_NE(nullptr, p.lpIDList);
 }
 
-
-TEST(Prefs, ShellDisplayName_DisplayName) {
+TEST(Prefs, ItemIdListFromDisplayName_DisplayName) {
     WindowsApi api;
 
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
-        L"--shell-display-name", L"shell:RecycleBinFolder",
+        L"--item-id-list-from-display-name", L"shell:RecycleBinFolder",
     };
 
     Prefs p(&api);
