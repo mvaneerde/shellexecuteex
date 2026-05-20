@@ -82,9 +82,10 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
     // SEE_MASK_FLAG_HINST_IS_SITE TODO
 
     bool seenClass = false;
+    bool seenItemIdListFromDisplayName = false;
+    bool seenItemIdListFromKnownFolderId = false;
     bool seenRelayExitCode = false;
     bool seenShow = false;
-    bool seenShellDisplayName = false;
 
     for (int i = 1; i < argc; i++) {
         // flag arguments
@@ -154,17 +155,17 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             continue;
         }
 
-        // --shell-display-name
-        if (0 == _wcsicmp(argv[i], L"--shell-display-name")) {
-            if (seenShellDisplayName) {
-                LOG(L"%s", L"Multiple --shell-display-name arguments passed");
+        // --item-id-list-from-display-name
+        if (0 == _wcsicmp(argv[i], L"--item-id-list-from-display-name")) {
+            if (seenItemIdListFromDisplayName) {
+                LOG(L"%s", L"Multiple --item-id-list-from-display-name arguments passed");
                 return false;
             }
-            seenShellDisplayName = true;
+            seenItemIdListFromDisplayName = true;
 
             i++;
             if (i == argc) {
-                LOG(L"%s", L"--shell-display-name requires a value");
+                LOG(L"%s", L"--item-id-list-from-display-name requires a value");
                 return false;
             }
 
@@ -178,6 +179,42 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
                 nullptr);
             if (FAILED(hr)) { 
                 LOG(L"SHParseDisplayName failed: 0x%08x", hr);
+                return false;
+            }
+            continue;
+        }
+
+        // --item-id-list-from-known-folder-id
+        if (0 == _wcsicmp(argv[i], L"--item-id-list-from-known-folder-id")) {
+            if (seenItemIdListFromKnownFolderId) {
+                LOG(L"%s", L"Multiple --item-id-list-from-known-folder-id arguments passed");
+                return false;
+            }
+            seenItemIdListFromKnownFolderId = true;
+
+            i++;
+            if (i == argc) {
+                LOG(L"%s", L"--item-id-list-from-known-folder-id requires a value");
+                return false;
+            }
+
+            fMask |= SEE_MASK_IDLIST;
+
+            GUID clsid = {};
+            HRESULT hr = m_api->CLSIDFromString(argv[i], &clsid);
+            if (FAILED(hr)) {
+                LOG(L"CLSIDFromString failed: 0x%08x", hr);
+                return false;
+            }
+
+            hr = m_api->SHGetKnownFolderIDList(
+                clsid,
+                0,
+                nullptr,
+                reinterpret_cast<LPITEMIDLIST*>(&lpIDList)
+            );
+            if (FAILED(hr)) {
+                LOG(L"SHGetKnownFolderIDList failed: 0x%08x", hr);
                 return false;
             }
             continue;
@@ -213,8 +250,9 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
 
     if (1 !=
         (stringArgs.at(L"--file").seen ? 1 : 0) +
-        (seenShellDisplayName ? 1 : 0)) {
-        LOG(L"%s", L"Specify either --file or --shell-display-name but not both");
+        (seenItemIdListFromDisplayName ? 1 : 0) +
+        (seenItemIdListFromKnownFolderId ? 1 : 0)) {
+        LOG(L"%s", L"Specify precisely one of --file, --item-id-list-from-display-name, or --item-id-list-from-known-folder-id");
         return false;
     }
 
@@ -258,7 +296,11 @@ void Prefs::ShowUsage() {
     LOG(L"%s", L"    show usage");
     LOG(L"%s", L"");
     LOG(L"%s", L"shellexecute.exe");
-    LOG(L"%s", L"    [--file <file> | --shell-display-name <shell-display-name>]");
+    LOG(L"%s", L"    [");
+    LOG(L"%s", L"        --file <file> |");
+    LOG(L"%s", L"        --item-id-list-from-display-name <display-name> |");
+    LOG(L"%s", L"        --item-id-list-from-known-folder <known-folder>");
+    LOG(L"%s", L"    ]");
     LOG(L"%s", L"    [--async-ok]");
     LOG(L"%s", L"    [--class-name <class-name>]");
     LOG(L"%s", L"    [--connect-network-drive]");

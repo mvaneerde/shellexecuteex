@@ -77,7 +77,8 @@ add_executable(
     tests/prefs-flags.cpp
     tests/prefs-relay-exit-code.cpp
     tests/prefs-scenarios.cpp
-    tests/prefs-shell-display-name.cpp
+    tests/prefs-item-id-list-from-display-name.cpp
+    tests/prefs-item-id-list-from-known-folder-id.cpp
     tests/prefs-show.cpp
     tests/prefs-string-arguments.cpp
     tests/prefs-usage.cpp
