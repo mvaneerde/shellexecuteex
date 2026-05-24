@@ -12,8 +12,10 @@ private:
     IWindowsApi *m_api = nullptr;
     bool m_relayExitCode = false;
 
-    static bool IsUsage(int argc, LPCWSTR argv[]);
-    static void ShowUsage();
+    static bool IsTopUsage(int argc, LPCWSTR argv[]);
+    static void ShowTopUsage();
+    static bool IsHelpRequest(int argc, LPCWSTR argv[]);
+    bool FulfillHelpRequest(int argc, LPCWSTR argv[]);
     static int ShowInt_From_String(LPCWSTR s, bool &found);
 
     struct ShowInt_Mapping {
