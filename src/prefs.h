@@ -16,6 +16,7 @@ private:
     static void ShowTopUsage();
     static bool IsHelpRequest(int argc, LPCWSTR argv[]);
     bool FulfillHelpRequest(int argc, LPCWSTR argv[]);
+    static LPCWSTR String_From_KF_CATEGORY(KF_CATEGORY c);
     static int ShowInt_From_String(LPCWSTR s, bool &found);
 
     struct ShowInt_Mapping {

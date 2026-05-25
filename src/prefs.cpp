@@ -296,57 +296,154 @@ bool Prefs::IsTopUsage(int argc, LPCWSTR argv[]) {
 }
 
 bool Prefs::IsHelpRequest(int argc, LPCWSTR argv[]) {
-    // two parameters, first one "help"
-    return (argc == 2 + 1) &&
+    // first parameter is "help"
+    return (argc >= 1 + 1 ) &&
         (0 == _wcsicmp(argv[1], L"help"));
 }
 
 bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
-    LPCWSTR topic = argv[2];
-    if (0 == _wcsicmp(topic, L"flags")) {
-        LOG(L"%s", L"<flags>");
-        LOG(L"%s", L"    [--async-ok]");
-        LOG(L"%s", L"    [--do-environment-substitution]");
-        LOG(L"%s", L"    [--connect-network-drive]");
-        LOG(L"%s", L"    [--log-usage]");
-        LOG(L"%s", L"    [--no-async]");
-        LOG(L"%s", L"    [--no-close-process [--relay-exit-code]]");
-        LOG(L"%s", L"    [--no-console]");
-        LOG(L"%s", L"    [--no-query-class-store]");
-        LOG(L"%s", L"    [--no-ui]");
-        LOG(L"%s", L"    [--no-zone-checks]");
-        LOG(L"%s", L"    [--unicode]");
-        LOG(L"%s", L"    [--wait-for-input-idle]");
-        return true;
-    } else if (0 == _wcsicmp(topic, L"known-folders")) {
-        LOG(L"%s", L"TODO: enumerate known folders");
-        return false;
-    } else if (0 == _wcsicmp(topic, L"shellexecuteex")) {
-        LOG(L"%s", L"shellexecuteex.exe");
-        LOG(L"%s", L"    [");
-        LOG(L"%s", L"        --file <file> |");
-        LOG(L"%s", L"        --item-id-list-from-display-name <display-name> |");
-        LOG(L"%s", L"        --item-id-list-from-known-folder <known-folder>");
-        LOG(L"%s", L"    ]");
-        LOG(L"%s", L"    [--class-name <class-name>]");
-        LOG(L"%s", L"    [--directory <directory>]");
-        LOG(L"%s", L"    [--parameters <parameters>]");
-        LOG(L"%s", L"    [--show <show-options>]");
-        LOG(L"%s", L"    [--verb <verb>]");
-        LOG(L"%s", L"    <flags>");
-        return true;
-    } else if (0 == _wcsicmp(topic, L"show-options")) {
-        LOG(L"%s", L"<show-options>");
-        for (int i = 0; i < _countof(showInts); i++) {
-            LOG(L"    %s%s",
-                showInts[i].name,
-                (i == _countof(showInts) - 1 ? L"" : L" |"));
+    if (argc == 2 + 1) {
+        LPCWSTR topic = argv[2];
+        if (0 == _wcsicmp(topic, L"flags")) {
+            LOG(L"%s", L"<flags>");
+            LOG(L"%s", L"    --async-ok");
+            LOG(L"%s", L"        sets SEE_MASK_ASYNCOK");
+            LOG(L"%s", L"    --do-environment-substitution");
+            LOG(L"%s", L"        sets SEE_MASK_DOENVSUBST");
+            LOG(L"%s", L"    --connect-network-drive");
+            LOG(L"%s", L"        sets SEE_MASK_CONNECTNETDRV");
+            LOG(L"%s", L"    --log-usage");
+            LOG(L"%s", L"        sets SEE_MASK_FLAG_LOG_USAGE");
+            LOG(L"%s", L"    --no-async");
+            LOG(L"%s", L"        sets SEE_MASK_NOASYNC");
+            LOG(L"%s", L"    --no-close-process [--relay-exit-code]");
+            LOG(L"%s", L"        sets SEE_MASK_NOCLOSEPROCESS");
+            LOG(L"%s", L"        optionally waits and returns the exit code");
+            LOG(L"%s", L"    --no-console");
+            LOG(L"%s", L"        sets SEE_MASK_NO_CONSOLE");
+            LOG(L"%s", L"    --no-query-class-store");
+            LOG(L"%s", L"        sets SEE_MASK_NOQUERYCLASSSTORE");
+            LOG(L"%s", L"    --no-ui");
+            LOG(L"%s", L"        sets SEE_MASK_FLAG_NO_UI");
+            LOG(L"%s", L"    --no-zone-checks");
+            LOG(L"%s", L"        sets SEE_MASK_NOZONECHECKS");
+            LOG(L"%s", L"    --unicode");
+            LOG(L"%s", L"        sets SEE_MASK_UNICODE");
+            LOG(L"%s", L"    --wait-for-input-idle");
+            LOG(L"%s", L"        sets SEE_MASK_WAITFORINPUTIDLE");
+            return true;
+        } else if (0 == _wcsicmp(topic, L"known-folders")) {
+            // TODO: mock
+            IKnownFolderManager *manager = nullptr;
+            HRESULT hr = ::CoCreateInstance(
+                CLSID_KnownFolderManager,
+                nullptr,
+                CLSCTX_INPROC_SERVER,
+                IID_PPV_ARGS(&manager)
+            );
+            if (SUCCEEDED(hr)) {
+                ReleaseOnExit releaseManager(manager);
+                KNOWNFOLDERID *folders = nullptr;
+                UINT count = 0;
+                hr = manager->GetFolderIds(&folders, &count);
+                if (SUCCEEDED(hr)) {
+                    CoTaskMemFreeOnExit freeFolders(folders);
+                    LOG(L"Known folders: %u", count);
+
+                    for (UINT i = 0; i < count; i++) {
+                        WCHAR id_as_string[39] = {};
+                        // TODO: mock
+                        hr = StringFromGUID2(folders[i], id_as_string, _countof(id_as_string));
+                        if (SUCCEEDED(hr)) {
+                            LOG(L"#%u: %s", i + 1, id_as_string);
+
+                            IKnownFolder *folder = nullptr;
+                            hr = manager->GetFolder(folders[i], &folder);
+                            if (SUCCEEDED(hr)) {
+                                ReleaseOnExit releaseFolder(folder);
+                                KNOWNFOLDER_DEFINITION definition = {};
+                                hr = folder->GetFolderDefinition(&definition);
+                                if (SUCCEEDED(hr)) {
+                                    FreeKnownFolderDefinitionFieldsOnExit freeDefinition(&definition);
+                                    WCHAR parent_as_string[39] = {};
+                                    hr = StringFromGUID2(definition.fidParent, parent_as_string, _countof(parent_as_string));
+                                    if (SUCCEEDED(hr)) {
+                                        WCHAR type_as_string[39] = {};
+                                        hr = StringFromGUID2(definition.ftidType, type_as_string, _countof(type_as_string));
+                                        if (SUCCEEDED(hr)) {
+                                            LOG(L"    category: %s (%u)", String_From_KF_CATEGORY(definition.category), definition.category);
+                                            LOG(L"    pszName: %s", definition.pszName);
+                                            LOG(L"    pszDescription: %s", definition.pszDescription);
+                                            LOG(L"    fidParent: %s", parent_as_string);
+                                            LOG(L"    pszRelativePath: %s", definition.pszRelativePath);
+                                            LOG(L"    pszParsingName: %s", definition.pszParsingName);
+                                            LOG(L"    pszTooltip: %s", definition.pszTooltip);
+                                            LOG(L"    pszLocalizedName: %s", definition.pszLocalizedName);
+                                            LOG(L"    pszIcon: %s", definition.pszIcon);
+                                            LOG(L"    pszSecurity: %s", definition.pszSecurity);
+                                            LOG(L"    dwAttributes: 0x%08x", definition.dwAttributes);
+                                            LOG(L"    kfdFlags: 0x%08x", definition.kfdFlags);
+                                            LOG(L"    ftidType: %s", type_as_string);
+                                        } else {
+                                            LOG(L"StringFromGUID2 failed: 0x%08x", hr);
+                                            return false;
+                                        }
+                                    } else {
+                                        LOG(L"StringFromGUID2 failed: 0x%08x", hr);
+                                        return false;
+                                    }
+                                } else {
+                                    LOG(L"IKnownFolder::GetFolderDefinition failed: 0x%08x", hr);
+                                    return false;
+                                }
+                            } else {
+                                LOG(L"IKnownFolderManager::GetFolder failed: 0x%08x", hr);
+                                return false;
+                            }
+                        } else {
+                            LOG(L"StringFromGUID2 failed: 0x%08x", hr);
+                            return false;
+                        }
+                    }
+
+                    // made it through the loop without error
+                    return true;
+                } else {
+                    LOG(L"IKnownFolderManager::GetFolderIds failed: 0x%08x", hr);
+                    return false;
+                }
+            } else {
+                LOG(L"CoCreateInstance(CLSID_KnownFolderManager) failed: 0x%08x", hr);
+                return false;
+            }
+        } else if (0 == _wcsicmp(topic, L"shellexecuteex")) {
+            LOG(L"%s", L"shellexecuteex.exe");
+            LOG(L"%s", L"    [");
+            LOG(L"%s", L"        --file <file> |");
+            LOG(L"%s", L"        --item-id-list-from-display-name <display-name> |");
+            LOG(L"%s", L"        --item-id-list-from-known-folder <known-folder>");
+            LOG(L"%s", L"    ]");
+            LOG(L"%s", L"    [--class-name <class-name>]");
+            LOG(L"%s", L"    [--directory <directory>]");
+            LOG(L"%s", L"    [--parameters <parameters>]");
+            LOG(L"%s", L"    [--show <show-options>]");
+            LOG(L"%s", L"    [--verb <verb>]");
+            LOG(L"%s", L"    <flags>");
+            return true;
+        } else if (0 == _wcsicmp(topic, L"show-options")) {
+            LOG(L"%s", L"<show-options>");
+            for (int i = 0; i < _countof(showInts); i++) {
+                LOG(L"    %s", showInts[i].name);
+            }
+            LOG(L"%s", L"");
+            LOG(L"%s", L"SW_NORMAL is the default");
+            return true;
+        } else {
+            LOG(L"Unrecognized help topic %s", topic);
+            return false;
         }
-        LOG(L"%s", L"");
-        LOG(L"%s", L"SW_NORMAL is the default");
-        return true;
     } else {
-        LOG(L"Unrecognized help topic %s", topic);
+        LOG(L"%s", L"pass a single topic to help");
         return false;
     }
 }
@@ -358,10 +455,10 @@ void Prefs::ShowTopUsage() {
     LOG(L"%s", L"shellexecuteex.exe help <topic>");
     LOG(L"%s", L"    show detailed help on a particular topic");
     LOG(L"%s", L"");
-    LOG(L"%s", L"<topic>:");
-    LOG(L"%s", L"    flags |");
-    LOG(L"%s", L"    known-folders |");
-    LOG(L"%s", L"    shellexecuteex |");
+    LOG(L"%s", L"<topic>");
+    LOG(L"%s", L"    flags");
+    LOG(L"%s", L"    known-folders");
+    LOG(L"%s", L"    shellexecuteex");
     LOG(L"%s", L"    show-options");
 }
 
@@ -377,6 +474,19 @@ void Prefs::LogResult(BOOL result, DWORD error) {
 
 bool Prefs::RelayExitCode() {
     return m_relayExitCode;
+}
+
+#define CASE_RETURN_KF_CATEGORY(c) case c: return L ## #c
+
+LPCWSTR Prefs::String_From_KF_CATEGORY(KF_CATEGORY c) {
+    switch (c) {
+        CASE_RETURN_KF_CATEGORY(KF_CATEGORY_VIRTUAL);
+        CASE_RETURN_KF_CATEGORY(KF_CATEGORY_FIXED);
+        CASE_RETURN_KF_CATEGORY(KF_CATEGORY_COMMON);
+        CASE_RETURN_KF_CATEGORY(KF_CATEGORY_PERUSER);
+        default:
+            return L"Unrecognized";
+    }
 }
 
 int Prefs::ShowInt_From_String(LPCWSTR s, bool &found) {
