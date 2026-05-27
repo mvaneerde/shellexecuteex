@@ -27,6 +27,7 @@ public:
     MOCK_METHOD(void, CoUninitialize, (), (override));
     MOCK_METHOD(HWND, GetConsoleWindow, (), (override));
     MOCK_METHOD(BOOL, GetExitCodeProcess, (HANDLE process, LPDWORD exitCode), (override));
+    MOCK_METHOD(DWORD, GetLastError, (), (override));
     MOCK_METHOD(BOOL, ShellExecuteExW, (LPSHELLEXECUTEINFOW info), (override));
     MOCK_METHOD(HRESULT, SHGetKnownFolderIDList, (
         REFKNOWNFOLDERID id,

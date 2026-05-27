@@ -10,6 +10,7 @@ public:
     virtual void CoUninitialize() = 0;
     virtual HWND GetConsoleWindow() = 0;
     virtual BOOL GetExitCodeProcess(HANDLE process, LPDWORD exitCode) = 0;
+    virtual DWORD GetLastError() = 0;
     virtual HRESULT SHGetKnownFolderIDList(
         REFKNOWNFOLDERID id,
         DWORD flags,
@@ -37,6 +38,7 @@ public:
     void CoUninitialize() override;
     HWND GetConsoleWindow() override;
     BOOL GetExitCodeProcess(HANDLE process, LPDWORD exitCode) override;
+    DWORD GetLastError() override;
     BOOL ShellExecuteExW(LPSHELLEXECUTEINFOW info) override;
     HRESULT SHGetKnownFolderIDList(
         REFKNOWNFOLDERID id,

@@ -44,16 +44,37 @@ TEST(Main, ShellExecuteFails) {
     MockWindowsApi api;
 
     EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
-    EXPECT_CALL(api, ShellExecuteExW(_))
-        .WillOnce(Invoke([customError](LPSHELLEXECUTEINFOW) {
-            // simulate failure with a custom error code
-            SetLastError(customError);
-            return FALSE;
-        }));
+    EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(FALSE));
+    EXPECT_CALL(api, GetLastError()).WillOnce(Return(customError));
     EXPECT_CALL(api, CloseHandle(_)).Times(0);
 
     // verify we got back the specific error
     EXPECT_EQ(customError, wmain_internal(
+        _countof(notepad_args),
+        notepad_args,
+        &api
+    ));
+}
+
+// Valid parameters should
+// - call ShellExecuteExW
+// - if ShellExecuteExW fails and GetLastError returns 0,
+// return a non-zero error code
+TEST(Main, ShellExecuteFailsWithZeroError) {
+    LPCWSTR notepad_args[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"notepad.exe"
+    };
+
+    MockWindowsApi api;
+
+    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
+    EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(FALSE));
+    EXPECT_CALL(api, GetLastError()).WillOnce(Return(0));
+    EXPECT_CALL(api, CloseHandle(_)).Times(0);
+
+    // wmain_internal should make up a non-zero error code
+    EXPECT_NE(0, wmain_internal(
         _countof(notepad_args),
         notepad_args,
         &api

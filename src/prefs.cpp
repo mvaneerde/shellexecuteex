@@ -462,7 +462,7 @@ void Prefs::ShowTopUsage() {
     LOG(L"%s", L"    show-options");
 }
 
-void Prefs::LogResult(BOOL result, DWORD error) {
+int Prefs::LogResult(BOOL result, DWORD error) {
     LOG(L"ShellExecuteExW %s", (result ? L"succeeded" : L"failed"));
     if (result) {
         LOG(L"hProcess: 0x%p", hProcess);
@@ -470,6 +470,13 @@ void Prefs::LogResult(BOOL result, DWORD error) {
         LOG(L"Last error: %d", error);
     }
     LOG(L"hInstApp: 0x%p", hInstApp);
+    
+    if (result == FALSE && error == ERROR_SUCCESS) {
+        LOG(L"%s", L"ShellExecuteExW failed but no error was set");
+        return ERROR_INTERNAL_ERROR;
+    } else {
+        return error;
+    }
 }
 
 bool Prefs::RelayExitCode() {

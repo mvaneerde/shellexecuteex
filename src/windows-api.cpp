@@ -4,16 +4,16 @@ HRESULT WindowsApi::CoInitializeEx(LPVOID reserved, DWORD coinit) {
     return ::CoInitializeEx(reserved, coinit);
 }
 
-void WindowsApi::CoTaskMemFree(LPVOID p) {
-    return ::CoTaskMemFree(p);
-}
-
 BOOL WindowsApi::CloseHandle(HANDLE h) {
    return ::CloseHandle(h);
 }
 
 HRESULT WindowsApi::CLSIDFromString(PCWSTR s, LPCLSID c) {
     return ::CLSIDFromString(s, c);
+}
+
+void WindowsApi::CoTaskMemFree(LPVOID p) {
+    return ::CoTaskMemFree(p);
 }
 
 void WindowsApi::CoUninitialize() {
@@ -26,6 +26,10 @@ HWND WindowsApi::GetConsoleWindow() {
 
 BOOL WindowsApi::GetExitCodeProcess(HANDLE process, LPDWORD exitCode) {
     return ::GetExitCodeProcess(process, exitCode);
+}
+
+DWORD WindowsApi::GetLastError() {
+    return ::GetLastError();
 }
 
 BOOL WindowsApi::ShellExecuteExW(LPSHELLEXECUTEINFOW info) {

@@ -5,7 +5,7 @@ public:
     Prefs(IWindowsApi *api);
     ~Prefs();
     bool Parse(int argc, LPCWSTR argv[], bool &run);
-    void LogResult(BOOL result, DWORD error);
+    int LogResult(BOOL result, DWORD error);
     bool RelayExitCode();
 
 private:
