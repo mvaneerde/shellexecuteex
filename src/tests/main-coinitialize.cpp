@@ -9,7 +9,8 @@ TEST(Main, CoInitializeCalled) {
 
     MockWindowsApi api;
 
-    EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Invoke([](LPVOID, DWORD) { return S_OK; }));
+    EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Return(S_OK));
+    EXPECT_CALL(api, ShellExecuteExW(_)).Times(1).WillOnce(Return(TRUE));
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
     EXPECT_EQ(0, wmain_internal(
