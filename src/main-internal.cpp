@@ -25,9 +25,8 @@ int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
 
     // actually invoke the API and log the result
     if (!api->ShellExecuteExW(&p)) {
-        DWORD error = GetLastError();
-        p.LogResult(FALSE, error);
-        return error;
+        DWORD error = api->GetLastError();
+        return p.LogResult(FALSE, error);
     }
 
     p.LogResult(TRUE, ERROR_SUCCESS);

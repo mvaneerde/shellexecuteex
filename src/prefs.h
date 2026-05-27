@@ -5,15 +5,18 @@ public:
     Prefs(IWindowsApi *api);
     ~Prefs();
     bool Parse(int argc, LPCWSTR argv[], bool &run);
-    void LogResult(BOOL result, DWORD error);
+    int LogResult(BOOL result, DWORD error);
     bool RelayExitCode();
 
 private:
     IWindowsApi *m_api = nullptr;
     bool m_relayExitCode = false;
 
-    static bool IsUsage(int argc, LPCWSTR argv[]);
-    static void ShowUsage();
+    static bool IsTopUsage(int argc, LPCWSTR argv[]);
+    static void ShowTopUsage();
+    static bool IsHelpRequest(int argc, LPCWSTR argv[]);
+    bool FulfillHelpRequest(int argc, LPCWSTR argv[]);
+    static LPCWSTR String_From_KF_CATEGORY(KF_CATEGORY c);
     static int ShowInt_From_String(LPCWSTR s, bool &found);
 
     struct ShowInt_Mapping {

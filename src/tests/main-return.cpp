@@ -44,12 +44,8 @@ TEST(Main, ShellExecuteFails) {
     MockWindowsApi api;
 
     EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
-    EXPECT_CALL(api, ShellExecuteExW(_))
-        .WillOnce(Invoke([customError](LPSHELLEXECUTEINFOW) {
-            // simulate failure with a custom error code
-            SetLastError(customError);
-            return FALSE;
-        }));
+    EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(FALSE));
+    EXPECT_CALL(api, GetLastError()).WillOnce(Return(customError));
     EXPECT_CALL(api, CloseHandle(_)).Times(0);
 
     // verify we got back the specific error
@@ -60,40 +56,29 @@ TEST(Main, ShellExecuteFails) {
     ));
 }
 
-// Invoking a usage statement should
-// - not call ShellExecuteExW
-// - return 0
-TEST(Main, Usage) {
-    std::vector<Args> args;
-
-    // all of these sets of arguments should trigger a usage statement
-    // with a success return
-    // and a "do not run anything" output
-    LPCWSTR no_args[] = { L"shellexecuteex.exe" };
-    args.push_back(Args(_countof(no_args), no_args));
-
-    LPCWSTR help[][2] = {
-        { L"shellexecuteex.exe", L"-?" },
-        { L"shellexecuteex.exe", L"/?" },
-        { L"shellexecuteex.exe", L"--help" },
+// Valid parameters should
+// - call ShellExecuteExW
+// - if ShellExecuteExW fails and GetLastError returns 0,
+// return a non-zero error code
+TEST(Main, ShellExecuteFailsWithZeroError) {
+    LPCWSTR notepad_args[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"notepad.exe"
     };
-    for (int i = 0; i < _countof(help); i++) {
-        args.push_back(Args(_countof(help[i]), help[i]));
-    }
 
     MockWindowsApi api;
 
-    for (auto a : args) {
-        EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
-        EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
-        EXPECT_CALL(api, CloseHandle(_)).Times(0);
-        
-        EXPECT_EQ(0, wmain_internal(
-            a.argc,
-            a.argv,
-            &api
-        ));
-    }
+    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
+    EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(FALSE));
+    EXPECT_CALL(api, GetLastError()).WillOnce(Return(0));
+    EXPECT_CALL(api, CloseHandle(_)).Times(0);
+
+    // wmain_internal should make up a non-zero error code
+    EXPECT_NE(0, wmain_internal(
+        _countof(notepad_args),
+        notepad_args,
+        &api
+    ));
 }
 
 // An invalid parameter should
