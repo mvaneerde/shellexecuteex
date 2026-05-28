@@ -20,6 +20,10 @@ void WindowsApi::CoUninitialize() {
     return ::CoUninitialize();
 }
 
+void WindowsApi::FreeKnownFolderDefinitionFields(KNOWNFOLDER_DEFINITION *d) {
+    return ::FreeKnownFolderDefinitionFields(d);
+}
+
 HWND WindowsApi::GetConsoleWindow() {
     return ::GetConsoleWindow();
 }

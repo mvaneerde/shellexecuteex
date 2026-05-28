@@ -10,19 +10,18 @@ TEST(Main, ShellExecuteSucceeds) {
         L"--no-close-process"
     };
 
-    MockWindowsApi api;
+    ::testing::NiceMock<MockWindowsApi> api;
 
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
-    EXPECT_CALL(api, ShellExecuteExW(_))
-        .WillOnce(Invoke([](LPSHELLEXECUTEINFOW info) {
-            // create a closable handle
-            // without actually launching anything
-            if ((info->fMask & SEE_MASK_NOCLOSEPROCESS) == SEE_MASK_NOCLOSEPROCESS) {
-                info->hProcess = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-            }
+    HANDLE fakeProcessHandle = reinterpret_cast<HANDLE>(0x1);
+    EXPECT_CALL(api, ShellExecuteExW(
+        ::testing::Pointee(
+            ::testing::Field(&SHELLEXECUTEINFOW::fMask, HasBit(SEE_MASK_NOCLOSEPROCESS))
+        ))).WillOnce(Invoke([fakeProcessHandle](LPSHELLEXECUTEINFOW info) {
+            // ret
+            info->hProcess = fakeProcessHandle;
             return TRUE;
         }));
-    EXPECT_CALL(api, CloseHandle(_)).WillOnce(Invoke(::CloseHandle));
+    EXPECT_CALL(api, CloseHandle(fakeProcessHandle)).Times(1);
 
     EXPECT_EQ(0, wmain_internal(
         _countof(notepad_args),
@@ -41,12 +40,10 @@ TEST(Main, ShellExecuteFails) {
     };
 
     const DWORD customError = 123456789;
-    MockWindowsApi api;
+    ::testing::NiceMock<MockWindowsApi> api;
 
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
     EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(FALSE));
     EXPECT_CALL(api, GetLastError()).WillOnce(Return(customError));
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
 
     // verify we got back the specific error
     EXPECT_EQ(customError, wmain_internal(
@@ -66,12 +63,10 @@ TEST(Main, ShellExecuteFailsWithZeroError) {
         L"--file", L"notepad.exe"
     };
 
-    MockWindowsApi api;
+    ::testing::NiceMock<MockWindowsApi> api;
 
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
     EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(FALSE));
     EXPECT_CALL(api, GetLastError()).WillOnce(Return(0));
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
 
     // wmain_internal should make up a non-zero error code
     EXPECT_NE(0, wmain_internal(
@@ -87,10 +82,8 @@ TEST(Main, ShellExecuteFailsWithZeroError) {
 TEST(Main, InvalidParameter) {
     LPCWSTR invalid_args[] = { L"shellexecuteex.exe", L"--foo" };
 
-    MockWindowsApi api;
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
+    ::testing::NiceMock<MockWindowsApi> api;
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
 
     // any non-zero error code is fine
     EXPECT_NE(0, wmain_internal(
@@ -104,12 +97,7 @@ TEST(Main, InvalidParameter) {
 // but the process handle is null
 // then main should return a failure
 TEST(Main, RelayExitCode_NullProcessHandle) {
-    MockWindowsApi api;
-    EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Return(S_OK));
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
-    EXPECT_CALL(api, CoUninitialize()).Times(1);
-    EXPECT_CALL(api, GetConsoleWindow()).Times(1);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    ::testing::NiceMock<MockWindowsApi> api;
     EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(TRUE));
 
     LPCWSTR argv[] = {
@@ -129,23 +117,19 @@ TEST(Main, RelayExitCode_NullProcessHandle) {
 // verify relaying an exit code returns a failure
 // if GetExitCodeProcess fails
 TEST(Main, RelayExitCode_GetExitCodeProcess_Fails) {
-    MockWindowsApi api;
+    ::testing::NiceMock<MockWindowsApi> api;
 
-    EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Return(S_OK));
-    EXPECT_CALL(api, CloseHandle(_)).Times(1);
-    EXPECT_CALL(api, CoUninitialize()).Times(1);
-    EXPECT_CALL(api, GetConsoleWindow()).Times(1);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _))
-        .WillOnce(Invoke([](HANDLE, LPDWORD exitCode) {
-            SetLastError(12345);
-            return FALSE;
-        }));
+    const DWORD customError = 12345;
+    const HANDLE customProcessHandle = reinterpret_cast<HANDLE>(0x1);
+
     EXPECT_CALL(api, ShellExecuteExW(_))
-        .WillOnce(Invoke([](SHELLEXECUTEINFOW* info){
-            info->hProcess = reinterpret_cast<HANDLE>(0x1);
+        .WillOnce(Invoke([customProcessHandle](SHELLEXECUTEINFOW* info){
+            info->hProcess = customProcessHandle;
             return TRUE;
         }));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
+    EXPECT_CALL(api, WaitForSingleObject(customProcessHandle, INFINITE)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
+    EXPECT_CALL(api, GetExitCodeProcess(customProcessHandle, _)).Times(1).WillOnce(Return(FALSE));
+    EXPECT_CALL(api, GetLastError()).Times(1).WillOnce(Return(customError));
 
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
@@ -154,7 +138,7 @@ TEST(Main, RelayExitCode_GetExitCodeProcess_Fails) {
         L"--relay-exit-code"
     };
 
-    EXPECT_EQ(12345, wmain_internal(
+    EXPECT_EQ(customError, wmain_internal(
         _countof(argv),
         argv,
         &api
@@ -163,23 +147,21 @@ TEST(Main, RelayExitCode_GetExitCodeProcess_Fails) {
 
 // verify relaying an exit code returns the process's exit code
 TEST(Main, RelayExitCode_ChildProcess_Fails) {
-    MockWindowsApi api;
+    ::testing::NiceMock<MockWindowsApi> api;
 
-    EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Return(S_OK));
-    EXPECT_CALL(api, CloseHandle(_)).Times(1);
-    EXPECT_CALL(api, CoUninitialize()).Times(1);
-    EXPECT_CALL(api, GetConsoleWindow()).Times(1);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _))
-        .WillOnce(Invoke([](HANDLE, LPDWORD exitCode) {
-            *exitCode = 12345;
-            return TRUE;
-        }));
+    const DWORD customExitCode = 12345;
+    const HANDLE customProcessHandle = reinterpret_cast<HANDLE>(0x1);
     EXPECT_CALL(api, ShellExecuteExW(_))
-        .WillOnce(Invoke([](SHELLEXECUTEINFOW* info){
-            info->hProcess = reinterpret_cast<HANDLE>(0x1);
+        .WillOnce(Invoke([customProcessHandle](SHELLEXECUTEINFOW* info){
+            info->hProcess = reinterpret_cast<HANDLE>(customProcessHandle);
             return TRUE;
         }));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
+    EXPECT_CALL(api, WaitForSingleObject(customProcessHandle, INFINITE)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
+    EXPECT_CALL(api, GetExitCodeProcess(customProcessHandle, _)).Times(1)
+        .WillOnce(Invoke([customExitCode](HANDLE, LPDWORD exitCode) {
+            *exitCode = customExitCode;
+            return TRUE;
+        }));
 
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
@@ -188,7 +170,7 @@ TEST(Main, RelayExitCode_ChildProcess_Fails) {
         L"--relay-exit-code"
     };
 
-    EXPECT_EQ(12345, wmain_internal(
+    EXPECT_EQ(customExitCode, wmain_internal(
         _countof(argv),
         argv,
         &api

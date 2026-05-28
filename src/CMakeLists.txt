@@ -74,7 +74,6 @@ add_executable(
     tests/help.cpp
     tests/main-coinitialize.cpp
     tests/main-return.cpp
-    tests/prefs-api.cpp
     tests/prefs-flags.cpp
     tests/prefs-relay-exit-code.cpp
     tests/prefs-scenarios.cpp

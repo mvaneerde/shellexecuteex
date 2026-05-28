@@ -25,6 +25,7 @@ public:
     MOCK_METHOD(HRESULT, CLSIDFromString, (PCWSTR s, LPCLSID c), (override));
     MOCK_METHOD(void, CoTaskMemFree, (PVOID p), (override));
     MOCK_METHOD(void, CoUninitialize, (), (override));
+    MOCK_METHOD(void, FreeKnownFolderDefinitionFields, (KNOWNFOLDER_DEFINITION *d), (override));
     MOCK_METHOD(HWND, GetConsoleWindow, (), (override));
     MOCK_METHOD(BOOL, GetExitCodeProcess, (HANDLE process, LPDWORD exitCode), (override));
     MOCK_METHOD(DWORD, GetLastError, (), (override));
@@ -44,3 +45,7 @@ public:
     ), (override));
     MOCK_METHOD(DWORD, WaitForSingleObject, (HANDLE h, DWORD milliseconds), (override));
 };
+
+MATCHER_P(HasBit, bit, "argument has the given bit set") {
+    return (arg & bit) == bit;
+}

@@ -347,7 +347,7 @@ bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
                 UINT count = 0;
                 hr = manager->GetFolderIds(&folders, &count);
                 if (SUCCEEDED(hr)) {
-                    CoTaskMemFreeOnExit freeFolders(folders);
+                    CoTaskMemFreeOnExit freeFolders(m_api, folders);
                     LOG(L"Known folders: %u", count);
 
                     for (UINT i = 0; i < count; i++) {
@@ -364,7 +364,7 @@ bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
                                 KNOWNFOLDER_DEFINITION definition = {};
                                 hr = folder->GetFolderDefinition(&definition);
                                 if (SUCCEEDED(hr)) {
-                                    FreeKnownFolderDefinitionFieldsOnExit freeDefinition(&definition);
+                                    FreeKnownFolderDefinitionFieldsOnExit freeDefinition(m_api, &definition);
                                     WCHAR parent_as_string[39] = {};
                                     hr = StringFromGUID2(definition.fidParent, parent_as_string, _countof(parent_as_string));
                                     if (SUCCEEDED(hr)) {

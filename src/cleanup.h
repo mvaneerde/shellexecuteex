@@ -2,9 +2,10 @@
 
 class CoTaskMemFreeOnExit {
 public:
-    CoTaskMemFreeOnExit(PVOID m);
+    CoTaskMemFreeOnExit(IWindowsApi *a, PVOID m);
     ~CoTaskMemFreeOnExit();
 private:
+    IWindowsApi *api;
     PVOID memory;
 };
 
@@ -19,9 +20,10 @@ private:
 
 class FreeKnownFolderDefinitionFieldsOnExit {
 public:
-    FreeKnownFolderDefinitionFieldsOnExit(KNOWNFOLDER_DEFINITION *d);
+    FreeKnownFolderDefinitionFieldsOnExit(IWindowsApi *a, KNOWNFOLDER_DEFINITION *d);
     ~FreeKnownFolderDefinitionFieldsOnExit();
 private:
+    IWindowsApi *api;
     KNOWNFOLDER_DEFINITION *definition;
 };
 

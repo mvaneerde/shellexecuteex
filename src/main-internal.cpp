@@ -40,7 +40,7 @@ int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
         api->WaitForSingleObject(p.hProcess, INFINITE);
         DWORD exitCode = 0;
         if (!api->GetExitCodeProcess(p.hProcess, &exitCode)) {
-            DWORD error = GetLastError();
+            DWORD error = api->GetLastError();
             LOG(L"GetExitCodeProcess failed: 0x%08x", error);
             return error;
         }
