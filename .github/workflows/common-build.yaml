@@ -66,7 +66,7 @@ jobs:
             --export_type cobertura:coverage.xml `
             --export_type html:coverage_report `
             -- `
-            ${{ inputs['build-dir'] }}-${{ matrix.arch }}\${{ matrix.config }}\tests.exe
+            ctest --test-dir ${{ inputs['build-dir'] }}-${{ matrix.arch }} -C ${{ matrix.config }} --output-on-failure
 
           [xml]$xml = Get-Content coverage.xml -Raw
           $percent = ([float]$xml.coverage.'line-rate') * 100
