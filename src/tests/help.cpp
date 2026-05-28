@@ -21,14 +21,10 @@ TEST(Help, UsageTop) {
         args.push_back(Args(_countof(help[i]), help[i]));
     }
 
-    MockWindowsApi api;
+    ::testing::NiceMock<MockWindowsApi> api;
 
     for (auto a : args) {
-        EXPECT_CALL(api, CoInitializeEx(_, _)).WillOnce(Return(S_OK));
-        EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
         EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
-        EXPECT_CALL(api, CloseHandle(_)).Times(0);
-        EXPECT_CALL(api, CoUninitialize()).WillOnce(Return());
         
         EXPECT_EQ(0, wmain_internal(
             a.argc,
@@ -44,12 +40,8 @@ TEST(Help, Flags) {
         L"help", L"flags"
     };
 
-    MockWindowsApi api;
-    EXPECT_CALL(api, CoInitializeEx(_, _)).WillOnce(Return(S_OK));
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
+    ::testing::NiceMock<MockWindowsApi> api;
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
-    EXPECT_CALL(api, CoUninitialize()).WillOnce(Return());
 
     EXPECT_EQ(0, wmain_internal(
         _countof(args),
@@ -64,12 +56,8 @@ TEST(Help, KnownFolders) {
         L"help", L"known-folders"
     };
 
-    MockWindowsApi api;
-    EXPECT_CALL(api, CoInitializeEx(_, _)).WillOnce(Return(S_OK));
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
+    ::testing::NiceMock<MockWindowsApi> api;
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
-    EXPECT_CALL(api, CoUninitialize()).WillOnce(Return());
 
     EXPECT_EQ(0, wmain_internal(
         _countof(args),
@@ -84,12 +72,8 @@ TEST(Help, ShellExecuteEx) {
         L"help", L"shellexecuteex"
     };
 
-    MockWindowsApi api;
-    EXPECT_CALL(api, CoInitializeEx(_, _)).WillOnce(Return(S_OK));
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
+    ::testing::NiceMock<MockWindowsApi> api;
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
-    EXPECT_CALL(api, CoUninitialize()).WillOnce(Return());
 
     EXPECT_EQ(0, wmain_internal(
         _countof(args),
@@ -104,12 +88,8 @@ TEST(Help, ShowOptions) {
         L"help", L"show-options"
     };
 
-    MockWindowsApi api;
-    EXPECT_CALL(api, CoInitializeEx(_, _)).WillOnce(Return(S_OK));
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
+    ::testing::NiceMock<MockWindowsApi> api;
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
-    EXPECT_CALL(api, CoUninitialize()).WillOnce(Return());
 
     EXPECT_EQ(0, wmain_internal(
         _countof(args),
@@ -124,12 +104,8 @@ TEST(Help, Invalid) {
         L"help", L"no-such-topic"
     };
 
-    MockWindowsApi api;
-    EXPECT_CALL(api, CoInitializeEx(_, _)).WillOnce(Return(S_OK));
-    EXPECT_CALL(api, GetConsoleWindow()).WillOnce(Invoke(::GetConsoleWindow));
+    ::testing::NiceMock<MockWindowsApi> api;
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
-    EXPECT_CALL(api, CloseHandle(_)).Times(0);
-    EXPECT_CALL(api, CoUninitialize()).WillOnce(Return());
 
     EXPECT_NE(0, wmain_internal(
         _countof(args),

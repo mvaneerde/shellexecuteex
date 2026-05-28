@@ -7,7 +7,7 @@ TEST(Main, CoInitializeCalled) {
         L"--file", L"notepad.exe"
     };
 
-    MockWindowsApi api;
+    ::testing::NiceMock<MockWindowsApi> api;
 
     EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(1).WillOnce(Return(TRUE));
@@ -27,10 +27,10 @@ TEST(Main, CoUnInitializeSkippedOnFailure) {
         L"--file", L"notepad.exe"
     };
 
-    MockWindowsApi api;
 
     HRESULT failure = E_FAIL;
 
+    ::testing::NiceMock<MockWindowsApi> api;
     EXPECT_CALL(api, CoInitializeEx(_, _)).Times(1).WillOnce(Invoke([failure](LPVOID, DWORD) { return failure; }));
     EXPECT_CALL(api, CoUninitialize()).Times(0);
 

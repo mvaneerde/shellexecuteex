@@ -8,6 +8,7 @@ public:
     virtual HRESULT CLSIDFromString(PCWSTR s, LPCLSID c) = 0;
     virtual void CoTaskMemFree(LPVOID p) = 0;
     virtual void CoUninitialize() = 0;
+    virtual void FreeKnownFolderDefinitionFields(KNOWNFOLDER_DEFINITION *d) = 0;
     virtual HWND GetConsoleWindow() = 0;
     virtual BOOL GetExitCodeProcess(HANDLE process, LPDWORD exitCode) = 0;
     virtual DWORD GetLastError() = 0;
@@ -36,6 +37,7 @@ public:
     HRESULT CLSIDFromString(PCWSTR s, LPCLSID c) override;
     void CoTaskMemFree(LPVOID p) override;
     void CoUninitialize() override;
+    void FreeKnownFolderDefinitionFields(KNOWNFOLDER_DEFINITION *d) override;
     HWND GetConsoleWindow() override;
     BOOL GetExitCodeProcess(HANDLE process, LPDWORD exitCode) override;
     DWORD GetLastError() override;
