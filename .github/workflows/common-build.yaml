@@ -63,6 +63,7 @@ jobs:
           choco install opencppcoverage -y --no-progress
           & "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
             --sources ${{ github.workspace }}\src `
+            --modules ${{ inputs['build-dir'] }}-${{ matrix.arch }} `
             --export_type cobertura:coverage.xml `
             --export_type html:coverage_report `
             -- `
