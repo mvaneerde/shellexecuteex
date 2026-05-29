@@ -154,7 +154,7 @@ jobs:
 
           # Include the full code coverage report in the release package
           Copy-Item `
-            -Path "coverage-report/coverage_report" `
+            -Path "coverage-report" `
             -Destination (Join-Path $packageDir "coverage") `
             -Recurse
               
