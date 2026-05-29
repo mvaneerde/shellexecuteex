@@ -61,16 +61,14 @@ jobs:
         if: matrix.is-coverage
         run: |
           choco install opencppcoverage -y --no-progress
-          & "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
-            --sources ${{ github.workspace }}\src `
-            --cover_children `
-            --modules "*.exe" `
-            --export_type cobertura:coverage.xml `
-            --export_type html:coverage_report `
-            -- `
-            ctest --test-dir ${{ inputs['build-dir'] }}-${{ matrix.arch }} -C ${{ matrix.config }} --output-on-failure
+          $report_dir = Join-Path "${{ runner.temp }}" "coverage"
+          scripts\code-coverage.ps1 `
+            --build_dir "${{ inputs['build-dir'] }}-${{ matrix.arch }}" `
+            --report_dir $report_dir `
+            --source_dir "${{ github.workspace }}\src" `
+            --config "${{ matrix.config }}"
 
-          [xml]$xml = Get-Content coverage.xml -Raw
+          [xml]$xml = Get-Content (Join-Path $report_dir "coverage.xml") -Raw
           $linesValid = [int]$xml.coverage.'lines-valid'
           if ($linesValid -eq 0) {
               Write-Error "No modules or source files were instrumented. Verify that your test executables are being built and that PDB files are present."
@@ -91,6 +89,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: |
-            coverage.xml
-            coverage_report
+          path: ${{ runner.temp }}\coverage
