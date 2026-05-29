@@ -75,3 +75,18 @@ TEST(Prefs, ItemIdListFromDisplayName_DisplayName) {
     EXPECT_EQ(SEE_MASK_IDLIST, p.fMask);
     EXPECT_NE(nullptr, p.lpIDList);
 }
+
+TEST(Prefs, ItemIdListFromDisplayName_Invalid) {
+    WindowsApi api;
+
+    LPCWSTR argv[] = {
+        L"shellexecuteex.exe",
+        L"--item-id-list-from-display-name", L"foo",
+    };
+
+    Prefs p(&api);
+    bool run = false;
+    EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(nullptr, p.lpIDList);
+    // no expectation on run
+}

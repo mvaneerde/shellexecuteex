@@ -89,6 +89,7 @@ gtest_discover_tests(unit_tests PROPERTIES LABELS "unit")
 
 add_executable(
     functional_tests
+    tests/functional/help.cpp
     tests/functional/prefs-flags.cpp
     tests/functional/prefs-item-id-list-from-display-name.cpp
     tests/functional/prefs-item-id-list-from-known-folder-id.cpp

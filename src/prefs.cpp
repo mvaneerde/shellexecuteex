@@ -351,57 +351,35 @@ bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
                     LOG(L"Known folders: %u", count);
 
                     for (UINT i = 0; i < count; i++) {
-                        WCHAR id_as_string[39] = {};
-                        // TODO: mock
-                        hr = StringFromGUID2(folders[i], id_as_string, _countof(id_as_string));
-                        if (SUCCEEDED(hr)) {
-                            LOG(L"#%u: %s", i + 1, id_as_string);
+                        LOG(L"#%u: " GUID_PRINTF_FORMAT, i + 1, GUID_PRINTF_ARGS(folders[i]));
 
-                            IKnownFolder *folder = nullptr;
-                            hr = manager->GetFolder(folders[i], &folder);
+                        IKnownFolder *folder = nullptr;
+                        hr = manager->GetFolder(folders[i], &folder);
+                        if (SUCCEEDED(hr)) {
+                            ReleaseOnExit releaseFolder(folder);
+                            KNOWNFOLDER_DEFINITION definition = {};
+                            hr = folder->GetFolderDefinition(&definition);
                             if (SUCCEEDED(hr)) {
-                                ReleaseOnExit releaseFolder(folder);
-                                KNOWNFOLDER_DEFINITION definition = {};
-                                hr = folder->GetFolderDefinition(&definition);
-                                if (SUCCEEDED(hr)) {
-                                    FreeKnownFolderDefinitionFieldsOnExit freeDefinition(m_api, &definition);
-                                    WCHAR parent_as_string[39] = {};
-                                    hr = StringFromGUID2(definition.fidParent, parent_as_string, _countof(parent_as_string));
-                                    if (SUCCEEDED(hr)) {
-                                        WCHAR type_as_string[39] = {};
-                                        hr = StringFromGUID2(definition.ftidType, type_as_string, _countof(type_as_string));
-                                        if (SUCCEEDED(hr)) {
-                                            LOG(L"    category: %s (%u)", String_From_KF_CATEGORY(definition.category), definition.category);
-                                            LOG(L"    pszName: %s", definition.pszName);
-                                            LOG(L"    pszDescription: %s", definition.pszDescription);
-                                            LOG(L"    fidParent: %s", parent_as_string);
-                                            LOG(L"    pszRelativePath: %s", definition.pszRelativePath);
-                                            LOG(L"    pszParsingName: %s", definition.pszParsingName);
-                                            LOG(L"    pszTooltip: %s", definition.pszTooltip);
-                                            LOG(L"    pszLocalizedName: %s", definition.pszLocalizedName);
-                                            LOG(L"    pszIcon: %s", definition.pszIcon);
-                                            LOG(L"    pszSecurity: %s", definition.pszSecurity);
-                                            LOG(L"    dwAttributes: 0x%08x", definition.dwAttributes);
-                                            LOG(L"    kfdFlags: 0x%08x", definition.kfdFlags);
-                                            LOG(L"    ftidType: %s", type_as_string);
-                                        } else {
-                                            LOG(L"StringFromGUID2 failed: 0x%08x", hr);
-                                            return false;
-                                        }
-                                    } else {
-                                        LOG(L"StringFromGUID2 failed: 0x%08x", hr);
-                                        return false;
-                                    }
-                                } else {
-                                    LOG(L"IKnownFolder::GetFolderDefinition failed: 0x%08x", hr);
-                                    return false;
-                                }
+                                FreeKnownFolderDefinitionFieldsOnExit freeDefinition(m_api, &definition);
+                                LOG(L"    category: %s (%u)", String_From_KF_CATEGORY(definition.category), definition.category);
+                                LOG(L"    pszName: %s", definition.pszName);
+                                LOG(L"    pszDescription: %s", definition.pszDescription);
+                                LOG(L"    fidParent: " GUID_PRINTF_FORMAT, GUID_PRINTF_ARGS(definition.fidParent));
+                                LOG(L"    pszRelativePath: %s", definition.pszRelativePath);
+                                LOG(L"    pszParsingName: %s", definition.pszParsingName);
+                                LOG(L"    pszTooltip: %s", definition.pszTooltip);
+                                LOG(L"    pszLocalizedName: %s", definition.pszLocalizedName);
+                                LOG(L"    pszIcon: %s", definition.pszIcon);
+                                LOG(L"    pszSecurity: %s", definition.pszSecurity);
+                                LOG(L"    dwAttributes: 0x%08x", definition.dwAttributes);
+                                LOG(L"    kfdFlags: 0x%08x", definition.kfdFlags);
+                                LOG(L"    ftidType: " GUID_PRINTF_FORMAT, GUID_PRINTF_ARGS(definition.ftidType));
                             } else {
-                                LOG(L"IKnownFolderManager::GetFolder failed: 0x%08x", hr);
+                                LOG(L"IKnownFolder::GetFolderDefinition failed: 0x%08x", hr);
                                 return false;
                             }
                         } else {
-                            LOG(L"StringFromGUID2 failed: 0x%08x", hr);
+                            LOG(L"IKnownFolderManager::GetFolder failed: 0x%08x", hr);
                             return false;
                         }
                     }
