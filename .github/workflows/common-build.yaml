@@ -63,17 +63,17 @@ jobs:
           choco install opencppcoverage -y --no-progress
           $report_dir = Join-Path "${{ runner.temp }}" "coverage"
           scripts\code-coverage.ps1 `
-            --build_dir "${{ inputs['build-dir'] }}-${{ matrix.arch }}" `
-            --opencppcoverage_path "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
-            --report_dir $report_dir `
-            --source_dir "${{ github.workspace }}\src" `
-            --config "${{ matrix.config }}"
+            -build_dir "${{ inputs['build-dir'] }}-${{ matrix.arch }}" `
+            -opencppcoverage_path "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
+            -report_dir $report_dir `
+            -source_dir "${{ github.workspace }}\src" `
+            -config "${{ matrix.config }}"
 
           [xml]$xml = Get-Content (Join-Path $report_dir "coverage.xml") -Raw
           $linesValid = [int]$xml.coverage.'lines-valid'
           if ($linesValid -eq 0) {
-              Write-Error "No modules or source files were instrumented. Verify that your test executables are being built and that PDB files are present."
-              exit 1
+            Write-Error "No modules or source files were instrumented. Verify that your test executables are being built and that PDB files are present."
+            exit 1
           }
 
           $percent = ([float]$xml.coverage.'line-rate') * 100
@@ -81,8 +81,8 @@ jobs:
 
           Write-Host ("Code Coverage: {0:G6}% (Threshold: {1:G6}%)" -f $percent, $threshold)
           if ($percent -lt $threshold) {
-              Write-Error ("Code coverage ({0:G6}%) is below the required threshold ({1:G6}%)" -f $percent, $threshold)
-              exit 1
+            Write-Error ("Code coverage ({0:G6}%) is below the required threshold ({1:G6}%)" -f $percent, $threshold)
+            exit 1
           }
 
       - name: Upload coverage reports
