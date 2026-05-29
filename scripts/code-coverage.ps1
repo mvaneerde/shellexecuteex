@@ -18,7 +18,7 @@ If ($verbose) {
     $verbose_arg = @()
 }
 
-& OpenCppCoverage.exe `
+& $opencppcoverage_path `
     --cover_children `
     --excluded_sources $excluded_dir `
     --export_type cobertura:${coverage_xml} `
