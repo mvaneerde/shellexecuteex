@@ -8,6 +8,10 @@ Param(
     [switch]$verbose
 )
 
+If (-Not (Test-Path -Path $report_dir -PathType Container)) {
+    New-Item -Path $report_dir -ItemType Directory -Force | Out-Null
+}
+
 $coverage_html = $report_dir
 $coverage_xml = Join-Path $report_dir "coverage.xml"
 $excluded_dir = Join-Path $source_dir "tests"
