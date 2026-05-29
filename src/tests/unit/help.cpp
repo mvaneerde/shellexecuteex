@@ -50,7 +50,7 @@ TEST(Help, Flags) {
     ));
 }
 
-TEST(Help, KnownFolders) {
+TEST(Help, KnownFolders_Unit) {
     LPCWSTR args[] = {
         L"shellexecuteex.exe",
         L"help", L"known-folders"
@@ -92,6 +92,22 @@ TEST(Help, ShowOptions) {
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
 
     EXPECT_EQ(0, wmain_internal(
+        _countof(args),
+        args,
+        &api
+    ));
+}
+
+TEST(Help, MissingArgument) {
+    LPCWSTR args[] = {
+        L"shellexecuteex.exe",
+        L"help"
+    };
+
+    ::testing::NiceMock<MockWindowsApi> api;
+    EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
+
+    EXPECT_NE(0, wmain_internal(
         _countof(args),
         args,
         &api

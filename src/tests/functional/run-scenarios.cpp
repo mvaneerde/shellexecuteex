@@ -45,3 +45,20 @@ TEST(Run, Cmd_Exit_12345) {
         &api
     ));
 }
+
+TEST(Run, Invalid) {
+    // call foo
+    WindowsApi api;
+    Prefs prefs(&api);
+    LPCWSTR argv[] = {
+        L"shellexecuteex.exe",
+        L"--file", L"foo",
+        L"--no-ui"
+    };
+    bool run = false;
+    EXPECT_NE(0, wmain_internal(
+        _countof(argv),
+        argv,
+        &api
+    ));
+}

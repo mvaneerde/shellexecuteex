@@ -68,29 +68,45 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(googletest)
+include(GoogleTest)
 
 add_executable(
-    tests
-    tests/help.cpp
-    tests/main-coinitialize.cpp
-    tests/main-return.cpp
-    tests/prefs-flags.cpp
-    tests/prefs-relay-exit-code.cpp
-    tests/prefs-scenarios.cpp
-    tests/prefs-item-id-list-from-display-name.cpp
-    tests/prefs-item-id-list-from-known-folder-id.cpp
-    tests/prefs-show.cpp
-    tests/prefs-string-arguments.cpp
-    tests/prefs-usage.cpp
-    tests/run-scenarios.cpp
+    unit_tests
+    tests/unit/help.cpp
+    tests/unit/main-coinitialize.cpp
+    tests/unit/main-return.cpp
     tests/test-helpers.cpp
     tests/test-main.cpp)
 if (MSVC)
-    target_include_directories(tests
+    target_include_directories(unit_tests
         PRIVATE ${CMAKE_SOURCE_DIR}
+        PRIVATE ${CMAKE_SOURCE_DIR}/tests
     )
 endif()
-target_link_libraries(tests PRIVATE shellexecuteex_lib GTest::gtest_main GTest::gmock_main)
+target_link_libraries(unit_tests PRIVATE shellexecuteex_lib GTest::gtest_main GTest::gmock_main)
 
-include(GoogleTest)
-gtest_discover_tests(tests)
+gtest_discover_tests(unit_tests PROPERTIES LABELS "unit")
+
+add_executable(
+    functional_tests
+    tests/functional/help.cpp
+    tests/functional/prefs-flags.cpp
+    tests/functional/prefs-item-id-list-from-display-name.cpp
+    tests/functional/prefs-item-id-list-from-known-folder-id.cpp
+    tests/functional/prefs-relay-exit-code.cpp
+    tests/functional/prefs-scenarios.cpp
+    tests/functional/prefs-show.cpp
+    tests/functional/prefs-string-arguments.cpp
+    tests/functional/prefs-usage.cpp
+    tests/functional/run-scenarios.cpp
+    tests/test-helpers.cpp
+    tests/test-main.cpp)
+if (MSVC)
+    target_include_directories(functional_tests
+        PRIVATE ${CMAKE_SOURCE_DIR}
+        PRIVATE ${CMAKE_SOURCE_DIR}/tests
+    )
+endif()
+target_link_libraries(functional_tests PRIVATE shellexecuteex_lib GTest::gtest_main GTest::gmock_main)
+
+gtest_discover_tests(functional_tests PROPERTIES LABELS "functional")

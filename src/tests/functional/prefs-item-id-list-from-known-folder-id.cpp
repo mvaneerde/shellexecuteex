@@ -34,8 +34,8 @@ TEST(Prefs, ItemIdListFromKnownFolderId_Twice) {
 
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
-        L"--item-id-list-from-known-folder-id", L"{645FF040-5081-101B-9F08-00AA002F954E}",
-        L"--item-id-list-from-known-folder-id", L"{645FF040-5081-101B-9F08-00AA002F954E}",
+        L"--item-id-list-from-known-folder-id", L"{B7534046-3ECB-4C18-BE4E-64CD4CB7D6AC}",
+        L"--item-id-list-from-known-folder-id", L"{B7534046-3ECB-4C18-BE4E-64CD4CB7D6AC}",
     };
 
     Prefs p(&api);

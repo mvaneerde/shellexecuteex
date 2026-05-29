@@ -63,12 +63,20 @@ jobs:
           choco install opencppcoverage -y --no-progress
           & "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
             --sources ${{ github.workspace }}\src `
+            --cover_children `
+            --modules "*.exe" `
             --export_type cobertura:coverage.xml `
             --export_type html:coverage_report `
             -- `
-            ${{ inputs['build-dir'] }}-${{ matrix.arch }}\${{ matrix.config }}\tests.exe
+            ctest --test-dir ${{ inputs['build-dir'] }}-${{ matrix.arch }} -C ${{ matrix.config }} --output-on-failure
 
           [xml]$xml = Get-Content coverage.xml -Raw
+          $linesValid = [int]$xml.coverage.'lines-valid'
+          if ($linesValid -eq 0) {
+              Write-Error "No modules or source files were instrumented. Verify that your test executables are being built and that PDB files are present."
+              exit 1
+          }
+
           $percent = ([float]$xml.coverage.'line-rate') * 100
           $threshold = [float]${{ inputs['coverage-threshold'] }}
 
