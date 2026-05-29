@@ -2,6 +2,7 @@
 Param(
     [string]$build_dir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".." "build")),
     [string]$config = "Debug",
+    [string]$opencppcoverage_path = "OpenCppCoverage.exe",
     [string]$report_dir = (Join-Path $env:temp "coverage_report"),
     [string]$source_dir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".." "src")),
     [switch]$verbose

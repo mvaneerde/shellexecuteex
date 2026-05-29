@@ -57,17 +57,14 @@ jobs:
             ${{ inputs['build-dir'] }}-${{ matrix.arch }}/${{ matrix.config }}/*.exe
             ${{ inputs['build-dir'] }}-${{ matrix.arch }}/${{ matrix.config }}/*.pdb
 
-      - name: Install code coverage tools
-        if: matrix.is-coverage
-        run: |
-          choco install opencppcoverage -y --no-progress
-          
       - name: Run code coverage
         if: matrix.is-coverage
         run: |
+          choco install opencppcoverage -y --no-progress
           $report_dir = Join-Path "${{ runner.temp }}" "coverage"
           scripts\code-coverage.ps1 `
             --build_dir "${{ inputs['build-dir'] }}-${{ matrix.arch }}" `
+            --opencppcoverage_path "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe" `
             --report_dir $report_dir `
             --source_dir "${{ github.workspace }}\src" `
             --config "${{ matrix.config }}"
