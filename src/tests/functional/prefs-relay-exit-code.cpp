@@ -10,7 +10,7 @@ TEST(Prefs, RelayExitCode_Missing) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_TRUE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(S_OK,p.Parse(_countof(argv), argv, run));
     EXPECT_TRUE(run);
 
     EXPECT_FALSE(p.RelayExitCode());
@@ -28,7 +28,7 @@ TEST(Prefs, RelayExitCode_With_NoCloseProcess) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_TRUE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
     EXPECT_TRUE(run);
 
     EXPECT_TRUE(p.RelayExitCode());
@@ -46,7 +46,7 @@ TEST(Prefs, RelayExitCode_Duplicate) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
     // no expectation on run
 }
 
@@ -61,6 +61,6 @@ TEST(Prefs, RelayExitCode_Without_NoCloseProcess) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
     // no expectation on run
 }

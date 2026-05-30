@@ -10,7 +10,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_Missing_Argument) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
     // no expectation on run
 }
 
@@ -20,12 +20,12 @@ TEST(Prefs, ItemIdListFromKnownFolderId_And_File) {
     LPCWSTR argv[] = {
         L"shellexecuteex.exe",
         L"--file", L"notepad.exe",
-        L"--item-id-list-from-known-folder-id", L"{645FF040-5081-101B-9F08-00AA002F954E}",
+        L"--item-id-list-from-known-folder-id", L"{b7534046-3ecb-4c18-be4e-64cd4cb7d6ac}",
     };
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
     // no expectation on run
 }
 
@@ -40,7 +40,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_Twice) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
     // no expectation on run
 }
 
@@ -54,7 +54,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_NotGuid) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
     // no expectation on run
 }
 
@@ -68,7 +68,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_NullGuid) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND), p.Parse(_countof(argv), argv, run));
     // no expectation on run
 }
 
@@ -82,7 +82,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_Valid) {
 
     Prefs p(&api);
     bool run = false;
-    EXPECT_TRUE(p.Parse(_countof(argv), argv, run));
+    EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
     EXPECT_TRUE(run);
     EXPECT_EQ(SEE_MASK_IDLIST, p.fMask);
     EXPECT_NE(nullptr, p.lpIDList);

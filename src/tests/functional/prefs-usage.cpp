@@ -24,9 +24,7 @@ TEST(Prefs, Usage) {
         Prefs p(&api);
 
         bool run = true; // Parse should flip this to "false"
-        bool result = p.Parse(a.argc, a.argv, run);
-
-        EXPECT_EQ(result, true);
+        EXPECT_EQ(S_OK, p.Parse(a.argc, a.argv, run));
         EXPECT_EQ(run, false);
     }
 }

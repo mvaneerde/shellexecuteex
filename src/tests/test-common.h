@@ -22,13 +22,20 @@ class MockWindowsApi : public IWindowsApi {
 public:
     MOCK_METHOD(HRESULT, CoInitializeEx, (LPVOID reserved, DWORD coinit), (override));
     MOCK_METHOD(BOOL, CloseHandle, (HANDLE h), (override));
-    MOCK_METHOD(HRESULT, CLSIDFromString, (PCWSTR s, LPCLSID c), (override));
+    MOCK_METHOD(HRESULT, CoCreateInstance, (
+        REFCLSID clsid,
+        LPUNKNOWN outer,
+        DWORD context,
+        REFIID iid,
+        LPVOID *out
+    ), (override));
     MOCK_METHOD(void, CoTaskMemFree, (PVOID p), (override));
     MOCK_METHOD(void, CoUninitialize, (), (override));
     MOCK_METHOD(void, FreeKnownFolderDefinitionFields, (KNOWNFOLDER_DEFINITION *d), (override));
     MOCK_METHOD(HWND, GetConsoleWindow, (), (override));
     MOCK_METHOD(BOOL, GetExitCodeProcess, (HANDLE process, LPDWORD exitCode), (override));
     MOCK_METHOD(DWORD, GetLastError, (), (override));
+    MOCK_METHOD(HRESULT, IIDFromString, (PCWSTR s, LPIID iid), (override));
     MOCK_METHOD(BOOL, ShellExecuteExW, (LPSHELLEXECUTEINFOW info), (override));
     MOCK_METHOD(HRESULT, SHGetKnownFolderIDList, (
         REFKNOWNFOLDERID id,

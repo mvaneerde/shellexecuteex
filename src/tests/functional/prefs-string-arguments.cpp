@@ -49,7 +49,7 @@ TEST(Prefs, StringArguments) {
 
             Prefs p(&api);
             bool run = false;
-            EXPECT_TRUE(p.Parse(_countof(argv), argv, run));
+            EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
             EXPECT_TRUE(run);
 
             LPCWSTR oldValue = *arg.setting;
@@ -76,7 +76,7 @@ TEST(Prefs, StringArguments) {
 
             Prefs p(&api);
             bool run = false;
-            EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
             // no expectation on run
         }
 
@@ -94,7 +94,7 @@ TEST(Prefs, StringArguments) {
 
             Prefs p(&api);
             bool run = false;
-            EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
             // no expectation on run
         }
     }
@@ -118,7 +118,7 @@ TEST(Prefs, File) {
 
         Prefs p(&api);
         bool run = false;
-        EXPECT_TRUE(p.Parse(_countof(argv), argv, run));
+        EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
         EXPECT_TRUE(run);
 
         ExpectEq_ShellExecuteInfoW(expected, p);
@@ -133,7 +133,7 @@ TEST(Prefs, File) {
 
         Prefs p(&api);
         bool run = false;
-        EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
         // no expectation on run
     }
 
@@ -147,7 +147,7 @@ TEST(Prefs, File) {
 
         Prefs p(&api);
         bool run = false;
-        EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
         // no expectation on run
     }
 
@@ -161,7 +161,7 @@ TEST(Prefs, File) {
 
         Prefs p(&api);
         bool run = false;
-        EXPECT_FALSE(p.Parse(_countof(argv), argv, run));
+        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
         // no expectation on run
     }
 }

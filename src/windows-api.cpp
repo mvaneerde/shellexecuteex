@@ -8,8 +8,14 @@ BOOL WindowsApi::CloseHandle(HANDLE h) {
    return ::CloseHandle(h);
 }
 
-HRESULT WindowsApi::CLSIDFromString(PCWSTR s, LPCLSID c) {
-    return ::CLSIDFromString(s, c);
+HRESULT WindowsApi::CoCreateInstance(
+    REFCLSID clsid,
+    LPUNKNOWN outer,
+    DWORD context,
+    REFIID iid,
+    LPVOID *out
+) {
+    return ::CoCreateInstance(clsid, outer, context, iid, out);
 }
 
 void WindowsApi::CoTaskMemFree(LPVOID p) {
@@ -34,6 +40,10 @@ BOOL WindowsApi::GetExitCodeProcess(HANDLE process, LPDWORD exitCode) {
 
 DWORD WindowsApi::GetLastError() {
     return ::GetLastError();
+}
+
+HRESULT WindowsApi::IIDFromString(PCWSTR s, LPIID iid) {
+    return ::IIDFromString(s, iid);
 }
 
 BOOL WindowsApi::ShellExecuteExW(LPSHELLEXECUTEINFOW info) {

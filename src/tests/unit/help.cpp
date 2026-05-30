@@ -50,16 +50,17 @@ TEST(Help, Flags) {
     ));
 }
 
-TEST(Help, KnownFolders_Unit) {
+TEST(Help, KnownFolders_CoCreateFailed) {
     LPCWSTR args[] = {
         L"shellexecuteex.exe",
         L"help", L"known-folders"
     };
 
     ::testing::NiceMock<MockWindowsApi> api;
-    EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
+    HRESULT failure = -12345;
+    EXPECT_CALL(api, CoCreateInstance(CLSID_KnownFolderManager, _, _, _, _)).WillOnce(Return(failure));
 
-    EXPECT_EQ(0, wmain_internal(
+    EXPECT_EQ(failure, wmain_internal(
         _countof(args),
         args,
         &api
