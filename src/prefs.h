@@ -4,7 +4,7 @@ class Prefs : public SHELLEXECUTEINFOW {
 public:
     Prefs(IWindowsApi *api);
     ~Prefs();
-    bool Parse(int argc, LPCWSTR argv[], bool &run);
+    HRESULT Parse(int argc, LPCWSTR argv[], bool &run);
     int LogResult(BOOL result, DWORD error);
     bool RelayExitCode();
 
@@ -15,7 +15,7 @@ private:
     static bool IsTopUsage(int argc, LPCWSTR argv[]);
     static void ShowTopUsage();
     static bool IsHelpRequest(int argc, LPCWSTR argv[]);
-    bool FulfillHelpRequest(int argc, LPCWSTR argv[]);
+    HRESULT FulfillHelpRequest(int argc, LPCWSTR argv[]);
     static LPCWSTR String_From_KF_CATEGORY(KF_CATEGORY c);
     static int ShowInt_From_String(LPCWSTR s, bool &found);
 

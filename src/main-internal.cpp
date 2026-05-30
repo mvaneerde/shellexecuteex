@@ -12,10 +12,10 @@ int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
     // parse command-line arguments
     bool run = false;
     Prefs p(api); // inherits from SHELLEXECUTEINFOW
-    if (!p.Parse(argc, argv, run)) {
-        // parsing failed
+    hr = p.Parse(argc, argv, run);
+    if (FAILED(hr)) {
         // the particular failure is logged inside Prefs::Parse
-        return ERROR_INVALID_PARAMETER;
+        return hr;
     }
 
     if (!run) {

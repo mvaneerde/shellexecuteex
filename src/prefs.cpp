@@ -18,17 +18,16 @@ Prefs::~Prefs() {
     }
 }
 
-bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
+HRESULT Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
     // see if this is a request for a usage statement
     if (IsTopUsage(argc, argv)) {
         ShowTopUsage();
         run = false;
-        return true;
+        return S_OK;
     } else if (IsHelpRequest(argc, argv)) {
         run = false;
         return FulfillHelpRequest(argc, argv);
     } else {
-
         // some arguments just set a flag
         class FlagArg {
         public:
@@ -98,7 +97,7 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
                     FlagArg &arg = it->second;
                     if (arg.seen) {
                         LOG(L"Multiple %s arguments passed", it->first);
-                        return false;
+                        return E_INVALIDARG;
                     }
                     arg.seen = true;
                     fMask |= arg.flag;
@@ -113,13 +112,13 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
                     StringArg &arg = it->second;
                     if (arg.seen) {
                         LOG(L"Multiple %s arguments passed", it->first);
-                        return false;
+                        return E_INVALIDARG;
                     }
                     arg.seen = true;
 
                     if (++i == argc) {
                         LOG(L"%s requires a value", it->first);
-                        return false;
+                        return E_INVALIDARG;
                     }
 
                     *arg.setting = argv[i];
@@ -131,14 +130,14 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             if (0 == _wcsicmp(argv[i], L"--class-name")) {
                 if (seenClass) {
                     LOG(L"%s", L"Multiple class arguments passed");
-                    return false;
+                    return E_INVALIDARG;
                 }
                 seenClass = true;
 
                 i++;
                 if (i == argc) {
                     LOG(L"%s", L"--class-name requires a value");
-                    return false;
+                    return E_INVALIDARG;
                 }
 
                 fMask |= SEE_MASK_CLASSNAME;
@@ -150,7 +149,7 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             if (0 == _wcsicmp(argv[i], L"--relay-exit-code")) {
                 if (seenRelayExitCode) {
                     LOG(L"%s", L"Multiple --relay-exit-code arguments passed");
-                    return false;
+                    return E_INVALIDARG;
                 }                
                 seenRelayExitCode = true;
                 
@@ -162,14 +161,14 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             if (0 == _wcsicmp(argv[i], L"--item-id-list-from-display-name")) {
                 if (seenItemIdListFromDisplayName) {
                     LOG(L"%s", L"Multiple --item-id-list-from-display-name arguments passed");
-                    return false;
+                    return E_INVALIDARG;
                 }
                 seenItemIdListFromDisplayName = true;
 
                 i++;
                 if (i == argc) {
                     LOG(L"%s", L"--item-id-list-from-display-name requires a value");
-                    return false;
+                    return E_INVALIDARG;
                 }
 
                 fMask |= SEE_MASK_IDLIST;
@@ -182,7 +181,7 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
                     nullptr);
                 if (FAILED(hr)) { 
                     LOG(L"SHParseDisplayName failed: 0x%08x", hr);
-                    return false;
+                    return hr;
                 }
                 continue;
             }
@@ -191,23 +190,23 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             if (0 == _wcsicmp(argv[i], L"--item-id-list-from-known-folder-id")) {
                 if (seenItemIdListFromKnownFolderId) {
                     LOG(L"%s", L"Multiple --item-id-list-from-known-folder-id arguments passed");
-                    return false;
+                    return E_INVALIDARG;
                 }
                 seenItemIdListFromKnownFolderId = true;
 
                 i++;
                 if (i == argc) {
                     LOG(L"%s", L"--item-id-list-from-known-folder-id requires a value");
-                    return false;
+                    return E_INVALIDARG;
                 }
 
                 fMask |= SEE_MASK_IDLIST;
 
                 GUID clsid = {};
-                HRESULT hr = m_api->CLSIDFromString(argv[i], &clsid);
+                HRESULT hr = m_api->IIDFromString(argv[i], &clsid);
                 if (FAILED(hr)) {
-                    LOG(L"CLSIDFromString failed: 0x%08x", hr);
-                    return false;
+                    LOG(L"IIDFromString failed: 0x%08x", hr);
+                    return hr;
                 }
 
                 hr = m_api->SHGetKnownFolderIDList(
@@ -218,7 +217,7 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
                 );
                 if (FAILED(hr)) {
                     LOG(L"SHGetKnownFolderIDList failed: 0x%08x", hr);
-                    return false;
+                    return hr;
                 }
                 continue;
             }
@@ -227,28 +226,28 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             if (0 == _wcsicmp(argv[i], L"--show")) {
                 if (seenShow) {
                     LOG(L"%s", L"Multiple --show arguments passed");
-                    return false;
+                    return E_INVALIDARG;
                 }
                 seenShow = true;
 
                 i++;
                 if (i == argc) {
                     LOG(L"%s", L"--show requires a value");
-                    return false;
+                    return E_INVALIDARG;
                 }
 
                 bool found = false;
                 nShow = ShowInt_From_String(argv[i], found);
                 if (!found) {
                     LOG(L"%s", L"Unrecognized value for --show");
-                    return false;
+                    return E_INVALIDARG;
                 }
                 continue;
             }
 
             // any other argument
             LOG(L"Unrecognized argument %s", argv[i]);
-            return false;
+            return E_INVALIDARG;
         }
 
         if (1 !=
@@ -256,18 +255,18 @@ bool Prefs::Parse(int argc, LPCWSTR argv[], bool &run) {
             (seenItemIdListFromDisplayName ? 1 : 0) +
             (seenItemIdListFromKnownFolderId ? 1 : 0)) {
             LOG(L"%s", L"Specify precisely one of --file, --item-id-list-from-display-name, or --item-id-list-from-known-folder-id");
-            return false;
+            return E_INVALIDARG;
         }
 
         // --relay-exit-code requires --no-close-process
         if (seenRelayExitCode &&
             !flagArgs.at(L"--no-close-process").seen) {
             LOG(L"%s", L"--relay-exit-code requires --no-close-process");
-            return false;
+            return E_INVALIDARG;
         }
 
         run = true;
-        return true;
+        return S_OK;
     }
 }
 
@@ -301,7 +300,7 @@ bool Prefs::IsHelpRequest(int argc, LPCWSTR argv[]) {
         (0 == _wcsicmp(argv[1], L"help"));
 }
 
-bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
+HRESULT Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
     if (argc == 2 + 1) {
         LPCWSTR topic = argv[2];
         if (0 == _wcsicmp(topic, L"flags")) {
@@ -331,11 +330,11 @@ bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
             LOG(L"%s", L"        sets SEE_MASK_UNICODE");
             LOG(L"%s", L"    --wait-for-input-idle");
             LOG(L"%s", L"        sets SEE_MASK_WAITFORINPUTIDLE");
-            return true;
+            return S_OK;
         } else if (0 == _wcsicmp(topic, L"known-folders")) {
             // TODO: mock
             IKnownFolderManager *manager = nullptr;
-            HRESULT hr = ::CoCreateInstance(
+            HRESULT hr = m_api->CoCreateInstance(
                 CLSID_KnownFolderManager,
                 nullptr,
                 CLSCTX_INPROC_SERVER,
@@ -376,23 +375,23 @@ bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
                                 LOG(L"    ftidType: " GUID_PRINTF_FORMAT, GUID_PRINTF_ARGS(definition.ftidType));
                             } else {
                                 LOG(L"IKnownFolder::GetFolderDefinition failed: 0x%08x", hr);
-                                return false;
+                                return hr;
                             }
                         } else {
                             LOG(L"IKnownFolderManager::GetFolder failed: 0x%08x", hr);
-                            return false;
+                            return hr;
                         }
                     }
 
                     // made it through the loop without error
-                    return true;
+                    return S_OK;
                 } else {
                     LOG(L"IKnownFolderManager::GetFolderIds failed: 0x%08x", hr);
-                    return false;
+                    return hr;
                 }
             } else {
                 LOG(L"CoCreateInstance(CLSID_KnownFolderManager) failed: 0x%08x", hr);
-                return false;
+                return hr;
             }
         } else if (0 == _wcsicmp(topic, L"shellexecuteex")) {
             LOG(L"%s", L"shellexecuteex.exe");
@@ -407,7 +406,7 @@ bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
             LOG(L"%s", L"    [--show <show-options>]");
             LOG(L"%s", L"    [--verb <verb>]");
             LOG(L"%s", L"    <flags>");
-            return true;
+            return S_OK;
         } else if (0 == _wcsicmp(topic, L"show-options")) {
             LOG(L"%s", L"<show-options>");
             for (int i = 0; i < _countof(showInts); i++) {
@@ -415,14 +414,14 @@ bool Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
             }
             LOG(L"%s", L"");
             LOG(L"%s", L"SW_NORMAL is the default");
-            return true;
+            return S_OK;
         } else {
             LOG(L"Unrecognized help topic %s", topic);
-            return false;
+            return E_INVALIDARG;
         }
     } else {
         LOG(L"%s", L"pass a single topic to help");
-        return false;
+        return E_INVALIDARG;
     }
 }
 

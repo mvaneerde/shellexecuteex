@@ -14,11 +14,10 @@ TEST(Run, Cmd_Echo_1) {
         L"--no-close-process",
     };
     bool run = false;
-    ASSERT_TRUE(prefs.Parse(_countof(argv), argv, run));
+    ASSERT_HRESULT_SUCCEEDED(prefs.Parse(_countof(argv), argv, run));
     ASSERT_TRUE(run);
 
-    BOOL result = api.ShellExecuteExW(&prefs);
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(api.ShellExecuteExW(&prefs));
 
     ASSERT_NE(nullptr, prefs.hProcess);
     EXPECT_EQ(WAIT_OBJECT_0, WaitForSingleObject(prefs.hProcess, INFINITE));

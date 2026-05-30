@@ -67,8 +67,8 @@ TEST(Prefs, Flags) {
 
             Prefs p(&api);
             bool run = false;
-            EXPECT_EQ(p.Parse(_countof(argv), argv, run), true);
-            EXPECT_EQ(run, true);
+            EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
+            EXPECT_EQ(true, run);
 
             SHELLEXECUTEINFOW expected = { sizeof(expected) };
             expected.fMask = f.second;
@@ -92,7 +92,7 @@ TEST(Prefs, Flags) {
 
             Prefs p(&api);
             bool run = false;
-            EXPECT_EQ(p.Parse(_countof(argv), argv, run), false);
+            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
             // no expectation on run
         }
     }
