@@ -332,67 +332,21 @@ HRESULT Prefs::FulfillHelpRequest(int argc, LPCWSTR argv[]) {
             LOG(L"%s", L"        sets SEE_MASK_WAITFORINPUTIDLE");
             return S_OK;
         } else if (0 == _wcsicmp(topic, L"known-folders")) {
-            // TODO: mock
             IKnownFolderManager *manager = nullptr;
-            HRESULT hr = m_api->CoCreateInstance(
-                CLSID_KnownFolderManager,
-                nullptr,
-                CLSCTX_INPROC_SERVER,
-                IID_PPV_ARGS(&manager)
-            );
-            if (SUCCEEDED(hr)) {
-                ReleaseOnExit releaseManager(manager);
-                KNOWNFOLDERID *folders = nullptr;
-                UINT count = 0;
-                hr = manager->GetFolderIds(&folders, &count);
-                if (SUCCEEDED(hr)) {
-                    CoTaskMemFreeOnExit freeFolders(m_api, folders);
-                    LOG(L"Known folders: %u", count);
-
-                    for (UINT i = 0; i < count; i++) {
-                        LOG(L"#%u: " GUID_PRINTF_FORMAT, i + 1, GUID_PRINTF_ARGS(folders[i]));
-
-                        IKnownFolder *folder = nullptr;
-                        hr = manager->GetFolder(folders[i], &folder);
-                        if (SUCCEEDED(hr)) {
-                            ReleaseOnExit releaseFolder(folder);
-                            KNOWNFOLDER_DEFINITION definition = {};
-                            hr = folder->GetFolderDefinition(&definition);
-                            if (SUCCEEDED(hr)) {
-                                FreeKnownFolderDefinitionFieldsOnExit freeDefinition(m_api, &definition);
-                                LOG(L"    category: %s (%u)", String_From_KF_CATEGORY(definition.category), definition.category);
-                                LOG(L"    pszName: %s", definition.pszName);
-                                LOG(L"    pszDescription: %s", definition.pszDescription);
-                                LOG(L"    fidParent: " GUID_PRINTF_FORMAT, GUID_PRINTF_ARGS(definition.fidParent));
-                                LOG(L"    pszRelativePath: %s", definition.pszRelativePath);
-                                LOG(L"    pszParsingName: %s", definition.pszParsingName);
-                                LOG(L"    pszTooltip: %s", definition.pszTooltip);
-                                LOG(L"    pszLocalizedName: %s", definition.pszLocalizedName);
-                                LOG(L"    pszIcon: %s", definition.pszIcon);
-                                LOG(L"    pszSecurity: %s", definition.pszSecurity);
-                                LOG(L"    dwAttributes: 0x%08x", definition.dwAttributes);
-                                LOG(L"    kfdFlags: 0x%08x", definition.kfdFlags);
-                                LOG(L"    ftidType: " GUID_PRINTF_FORMAT, GUID_PRINTF_ARGS(definition.ftidType));
-                            } else {
-                                LOG(L"IKnownFolder::GetFolderDefinition failed: 0x%08x", hr);
-                                return hr;
-                            }
-                        } else {
-                            LOG(L"IKnownFolderManager::GetFolder failed: 0x%08x", hr);
-                            return hr;
-                        }
-                    }
-
-                    // made it through the loop without error
-                    return S_OK;
-                } else {
-                    LOG(L"IKnownFolderManager::GetFolderIds failed: 0x%08x", hr);
-                    return hr;
-                }
-            } else {
-                LOG(L"CoCreateInstance(CLSID_KnownFolderManager) failed: 0x%08x", hr);
+            HRESULT hr = KnownFolders::GetManager(m_api, &manager);
+            if (FAILED(hr)) {
+                // GetManager logs failure
                 return hr;
             }
+            ReleaseOnExit releaseManager(manager);
+
+            hr = KnownFolders::PrintKnownFolders(m_api, manager);
+            if (FAILED(hr)) {
+                // PrintKnownFolders logs failure
+                return hr;
+            }
+
+            return S_OK;
         } else if (0 == _wcsicmp(topic, L"shellexecuteex")) {
             LOG(L"%s", L"shellexecuteex.exe");
             LOG(L"%s", L"    [");
@@ -458,19 +412,6 @@ int Prefs::LogResult(BOOL result, DWORD error) {
 
 bool Prefs::RelayExitCode() {
     return m_relayExitCode;
-}
-
-#define CASE_RETURN_KF_CATEGORY(c) case c: return L ## #c
-
-LPCWSTR Prefs::String_From_KF_CATEGORY(KF_CATEGORY c) {
-    switch (c) {
-        CASE_RETURN_KF_CATEGORY(KF_CATEGORY_VIRTUAL);
-        CASE_RETURN_KF_CATEGORY(KF_CATEGORY_FIXED);
-        CASE_RETURN_KF_CATEGORY(KF_CATEGORY_COMMON);
-        CASE_RETURN_KF_CATEGORY(KF_CATEGORY_PERUSER);
-        default:
-            return L"Unrecognized";
-    }
 }
 
 int Prefs::ShowInt_From_String(LPCWSTR s, bool &found) {

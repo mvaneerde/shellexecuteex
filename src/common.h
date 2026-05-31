@@ -9,6 +9,7 @@
 
 #include "log.h"
 #include "windows-api.h"
+#include "known-folders.h"
 #include "cleanup.h"
 #include "prefs.h"
 #include "main-internal.h"
