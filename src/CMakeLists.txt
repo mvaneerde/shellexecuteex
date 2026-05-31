@@ -36,6 +36,7 @@ configure_file(
 add_library(
     shellexecuteex_lib
     cleanup.cpp
+    known-folders.cpp
     main-internal.cpp
     prefs.cpp
     windows-api.cpp
@@ -73,6 +74,7 @@ include(GoogleTest)
 add_executable(
     unit_tests
     tests/unit/help.cpp
+    tests/unit/known-folders.cpp
     tests/unit/main-coinitialize.cpp
     tests/unit/main-return.cpp
     tests/test-helpers.cpp
