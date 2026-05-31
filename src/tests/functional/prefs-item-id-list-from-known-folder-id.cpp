@@ -9,9 +9,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_Missing_Argument) {
     };
 
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-    // no expectation on run
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
 }
 
 TEST(Prefs, ItemIdListFromKnownFolderId_And_File) {
@@ -24,9 +22,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_And_File) {
     };
 
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-    // no expectation on run
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
 }
 
 TEST(Prefs, ItemIdListFromKnownFolderId_Twice) {
@@ -39,9 +35,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_Twice) {
     };
 
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-    // no expectation on run
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
 }
 
 TEST(Prefs, ItemIdListFromKnownFolderId_NotGuid) {
@@ -53,9 +47,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_NotGuid) {
     };
 
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-    // no expectation on run
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
 }
 
 TEST(Prefs, ItemIdListFromKnownFolderId_NullGuid) {
@@ -67,9 +59,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_NullGuid) {
     };
 
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND), p.Parse(_countof(argv), argv, run));
-    // no expectation on run
+    EXPECT_EQ(HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND), p.Parse(_countof(argv), argv));
 }
 
 TEST(Prefs, ItemIdListFromKnownFolderId_Valid) {
@@ -81,9 +71,7 @@ TEST(Prefs, ItemIdListFromKnownFolderId_Valid) {
     };
 
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
-    EXPECT_TRUE(run);
+    EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv));
     EXPECT_EQ(SEE_MASK_IDLIST, p.fMask);
     EXPECT_NE(nullptr, p.lpIDList);
 }

@@ -27,7 +27,6 @@ TEST(Main, CoUnInitializeSkippedOnFailure) {
         L"--file", L"notepad.exe"
     };
 
-
     HRESULT failure = E_FAIL;
 
     ::testing::NiceMock<MockWindowsApi> api;

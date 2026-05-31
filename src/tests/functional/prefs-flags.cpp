@@ -55,6 +55,9 @@ TEST(Prefs, Flags) {
     
     WindowsApi api;
     for (auto f : flags) {
+        std::wstring context = std::wstring(L"flag=") + std::wstring(f.first);
+        SCOPED_TRACE(context);
+
         // valid case - passing the argument sets the flag
         {            
             LOG(L"Checking that %s sets 0x%08x", f.first, f.second);
@@ -66,9 +69,7 @@ TEST(Prefs, Flags) {
             };
 
             Prefs p(&api);
-            bool run = false;
-            EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
-            EXPECT_EQ(true, run);
+            EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv));
 
             SHELLEXECUTEINFOW expected = { sizeof(expected) };
             expected.fMask = f.second;
@@ -91,9 +92,7 @@ TEST(Prefs, Flags) {
             };
 
             Prefs p(&api);
-            bool run = false;
-            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-            // no expectation on run
+            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
         }
     }
 }

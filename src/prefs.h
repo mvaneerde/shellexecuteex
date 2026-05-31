@@ -4,26 +4,12 @@ class Prefs : public SHELLEXECUTEINFOW {
 public:
     Prefs(IWindowsApi *api);
     ~Prefs();
-    HRESULT Parse(int argc, LPCWSTR argv[], bool &run);
+    HRESULT Parse(int argc, LPCWSTR argv[]);
     int LogResult(BOOL result, DWORD error);
     bool RelayExitCode();
 
 private:
     IWindowsApi *m_api = nullptr;
     bool m_relayExitCode = false;
-
-    static bool IsTopUsage(int argc, LPCWSTR argv[]);
-    static void ShowTopUsage();
-    static bool IsHelpRequest(int argc, LPCWSTR argv[]);
-    HRESULT FulfillHelpRequest(int argc, LPCWSTR argv[]);
-    static int ShowInt_From_String(LPCWSTR s, bool &found);
-
-    struct ShowInt_Mapping {
-        ShowInt_Mapping(LPCWSTR n, int v);
-        LPCWSTR name;
-        int value;
-    };
-
-    static ShowInt_Mapping showInts[14];
 };
 

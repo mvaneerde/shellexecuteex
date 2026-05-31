@@ -1,4 +1,5 @@
 // common.h
+
 #include <map>
 
 #include <wtypes.h>
@@ -11,5 +12,7 @@
 #include "windows-api.h"
 #include "known-folders.h"
 #include "cleanup.h"
+#include "usage.h"
 #include "prefs.h"
+#include "show-window-command.h"
 #include "main-internal.h"

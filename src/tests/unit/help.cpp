@@ -1,6 +1,6 @@
 #include "test-common.h"
 
-TEST(Help, UsageTop) {
+TEST(Help, Usage) {
     // Invoking a usage statement should
     // - not call ShellExecuteExW
     // - return 0

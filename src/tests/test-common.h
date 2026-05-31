@@ -6,6 +6,10 @@ using ::testing::_;
 using ::testing::Invoke;
 using ::testing::Return;
 
+MATCHER_P(HasBit, bit, "argument has the given bit set") {
+    return (arg & bit) == bit;
+}
+
 struct Args {
     int argc;
     LPCWSTR *argv;
@@ -53,6 +57,41 @@ public:
     MOCK_METHOD(DWORD, WaitForSingleObject, (HANDLE h, DWORD milliseconds), (override));
 };
 
-MATCHER_P(HasBit, bit, "argument has the given bit set") {
-    return (arg & bit) == bit;
-}
+class MockKnownFolderManager : public IKnownFolderManager {
+public:
+    // IUnknown
+    MOCK_METHOD(HRESULT, QueryInterface, (REFIID, void **), (override));
+    MOCK_METHOD(ULONG, AddRef, (), (override));
+    MOCK_METHOD(ULONG, Release, (), (override));
+
+    // IKnownFolderManager
+    MOCK_METHOD(HRESULT, RegisterFolder, (REFKNOWNFOLDERID, const KNOWNFOLDER_DEFINITION *), (override));
+    MOCK_METHOD(HRESULT, UnregisterFolder, (REFKNOWNFOLDERID), (override));
+    MOCK_METHOD(HRESULT, FindFolderFromPath, (LPCWSTR, FFFP_MODE, IKnownFolder **), (override));
+    MOCK_METHOD(HRESULT, FindFolderFromIDList, (PCIDLIST_ABSOLUTE, IKnownFolder **), (override));
+    MOCK_METHOD(HRESULT, GetFolder, (REFKNOWNFOLDERID, IKnownFolder **), (override));
+    MOCK_METHOD(HRESULT, GetFolderIds, (KNOWNFOLDERID **, UINT *), (override));
+    MOCK_METHOD(HRESULT, GetFolderByName, (LPCWSTR, IKnownFolder **), (override));
+    MOCK_METHOD(HRESULT, FolderIdFromCsidl, (int, KNOWNFOLDERID *), (override));
+    MOCK_METHOD(HRESULT, FolderIdToCsidl, (REFKNOWNFOLDERID, int *), (override));
+    MOCK_METHOD(HRESULT, Redirect, (REFKNOWNFOLDERID, HWND, KF_REDIRECT_FLAGS, LPCWSTR, UINT, const KNOWNFOLDERID *, LPWSTR *), (override));
+};
+
+class MockKnownFolder : public IKnownFolder {
+public:
+    // IUnknown
+    MOCK_METHOD(HRESULT, QueryInterface, (REFIID, void **), (override));
+    MOCK_METHOD(ULONG, AddRef, (), (override));
+    MOCK_METHOD(ULONG, Release, (), (override));
+
+    // IKnownFolder
+    MOCK_METHOD(HRESULT, GetId, (KNOWNFOLDERID *), (override));
+    MOCK_METHOD(HRESULT, GetCategory, (KF_CATEGORY *), (override));
+    MOCK_METHOD(HRESULT, GetShellItem, (DWORD, REFIID, void **), (override));
+    MOCK_METHOD(HRESULT, GetPath, (DWORD, PWSTR *), (override));
+    MOCK_METHOD(HRESULT, SetPath, (DWORD, LPCWSTR), (override));
+    MOCK_METHOD(HRESULT, GetIDList, (DWORD, PIDLIST_ABSOLUTE *), (override));
+    MOCK_METHOD(HRESULT, GetFolderDefinition, (KNOWNFOLDER_DEFINITION *), (override));
+    MOCK_METHOD(HRESULT, GetRedirectionCapabilities, (KF_REDIRECTION_CAPABILITIES *), (override));
+    MOCK_METHOD(HRESULT, GetFolderType, (FOLDERTYPEID *), (override));
+};

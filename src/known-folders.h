@@ -1,6 +1,18 @@
 // known-folder.h
-namespace KnownFolders {
-    HRESULT GetManager(IWindowsApi *api, IKnownFolderManager **manager);
-    HRESULT PrintKnownFolders(IWindowsApi *api, IKnownFolderManager *manager);
-    LPCWSTR String_From_KF_CATEGORY(KF_CATEGORY category);
+class IKnownFolders {
+public:
+    virtual HRESULT GetManager(IKnownFolderManager **manager) = 0;
+    virtual HRESULT PrintKnownFolders(IKnownFolderManager *manager) = 0;
+    virtual LPCWSTR String_From_KF_CATEGORY(KF_CATEGORY category) = 0;
+};
+
+class KnownFolders : IKnownFolders {
+public:
+    KnownFolders(IWindowsApi *api);
+    HRESULT GetManager(IKnownFolderManager **manager) override;
+    HRESULT PrintKnownFolders(IKnownFolderManager *manager) override;
+    LPCWSTR String_From_KF_CATEGORY(KF_CATEGORY category) override;
+
+private:
+    IWindowsApi *m_api;
 };

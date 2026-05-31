@@ -1,44 +1,5 @@
 #include "test-common.h"
 
-class MockKnownFolderManager : public IKnownFolderManager {
-public:
-    // IUnknown
-    MOCK_METHOD(HRESULT, QueryInterface, (REFIID, void **), (override));
-    MOCK_METHOD(ULONG, AddRef, (), (override));
-    MOCK_METHOD(ULONG, Release, (), (override));
-
-    // IKnownFolderManager
-    MOCK_METHOD(HRESULT, RegisterFolder, (REFKNOWNFOLDERID, const KNOWNFOLDER_DEFINITION *), (override));
-    MOCK_METHOD(HRESULT, UnregisterFolder, (REFKNOWNFOLDERID), (override));
-    MOCK_METHOD(HRESULT, FindFolderFromPath, (LPCWSTR, FFFP_MODE, IKnownFolder **), (override));
-    MOCK_METHOD(HRESULT, FindFolderFromIDList, (PCIDLIST_ABSOLUTE, IKnownFolder **), (override));
-    MOCK_METHOD(HRESULT, GetFolder, (REFKNOWNFOLDERID, IKnownFolder **), (override));
-    MOCK_METHOD(HRESULT, GetFolderIds, (KNOWNFOLDERID **, UINT *), (override));
-    MOCK_METHOD(HRESULT, GetFolderByName, (LPCWSTR, IKnownFolder **), (override));
-    MOCK_METHOD(HRESULT, FolderIdFromCsidl, (int, KNOWNFOLDERID *), (override));
-    MOCK_METHOD(HRESULT, FolderIdToCsidl, (REFKNOWNFOLDERID, int *), (override));
-    MOCK_METHOD(HRESULT, Redirect, (REFKNOWNFOLDERID, HWND, KF_REDIRECT_FLAGS, LPCWSTR, UINT, const KNOWNFOLDERID *, LPWSTR *), (override));
-};
-
-class MockKnownFolder : public IKnownFolder {
-public:
-    // IUnknown
-    MOCK_METHOD(HRESULT, QueryInterface, (REFIID, void **), (override));
-    MOCK_METHOD(ULONG, AddRef, (), (override));
-    MOCK_METHOD(ULONG, Release, (), (override));
-
-    // IKnownFolder
-    MOCK_METHOD(HRESULT, GetId, (KNOWNFOLDERID *), (override));
-    MOCK_METHOD(HRESULT, GetCategory, (KF_CATEGORY *), (override));
-    MOCK_METHOD(HRESULT, GetShellItem, (DWORD, REFIID, void **), (override));
-    MOCK_METHOD(HRESULT, GetPath, (DWORD, PWSTR *), (override));
-    MOCK_METHOD(HRESULT, SetPath, (DWORD, LPCWSTR), (override));
-    MOCK_METHOD(HRESULT, GetIDList, (DWORD, PIDLIST_ABSOLUTE *), (override));
-    MOCK_METHOD(HRESULT, GetFolderDefinition, (KNOWNFOLDER_DEFINITION *), (override));
-    MOCK_METHOD(HRESULT, GetRedirectionCapabilities, (KF_REDIRECTION_CAPABILITIES *), (override));
-    MOCK_METHOD(HRESULT, GetFolderType, (FOLDERTYPEID *), (override));
-};
-
 TEST(KnownFolders, GetManagerFailure) {
     ::testing::NiceMock<MockWindowsApi> mockApi;
 
@@ -61,8 +22,9 @@ TEST(KnownFolders, GetManagerFailure) {
         return failure;
     }));
 
+    KnownFolders knownFolders(&mockApi);
     IKnownFolderManager *manager = reinterpret_cast<IKnownFolderManager *>(0x1);
-    EXPECT_EQ(failure, KnownFolders::GetManager(&mockApi, &manager));
+    EXPECT_EQ(failure, knownFolders.GetManager(&manager));
     EXPECT_EQ(nullptr, manager);
 }
 
@@ -87,8 +49,9 @@ TEST(KnownFolders, GetManagerSuccess) {
         return S_OK;
     }));
 
+    KnownFolders knownFolders(&mockApi);
     IKnownFolderManager *manager = nullptr;
-    EXPECT_EQ(S_OK, KnownFolders::GetManager(&mockApi, &manager));
+    EXPECT_EQ(S_OK, knownFolders.GetManager(&manager));
     EXPECT_EQ(&fakeManager, manager);
 }
 
@@ -99,7 +62,8 @@ TEST(KnownFolders, PrintKnownFolders_GetFolderIdsFailure) {
     HRESULT failure = -12345;
     EXPECT_CALL(mockManager, GetFolderIds(_, _)).Times(1).WillOnce(Return(failure));
 
-    EXPECT_EQ(failure, KnownFolders::PrintKnownFolders(&mockApi, &mockManager));
+    KnownFolders knownFolders(&mockApi);
+    EXPECT_EQ(failure, knownFolders.PrintKnownFolders(&mockManager));
 }
 
 TEST(KnownFolders, PrintKnownFolders_GetFolderFailure) {
@@ -118,7 +82,8 @@ TEST(KnownFolders, PrintKnownFolders_GetFolderFailure) {
     ));
     EXPECT_CALL(mockManager, GetFolder(folderId, _)).Times(1).WillOnce(Return(failure));
 
-    EXPECT_EQ(failure, KnownFolders::PrintKnownFolders(&mockApi, &mockManager));
+    KnownFolders knownFolders(&mockApi);
+    EXPECT_EQ(failure, knownFolders.PrintKnownFolders(&mockManager));
 }
 
 TEST(KnownFolders, PrintKnownFolders_GetFolderDefinitionFailure) {
@@ -146,7 +111,8 @@ TEST(KnownFolders, PrintKnownFolders_GetFolderDefinitionFailure) {
     EXPECT_CALL(mockFolder, AddRef()).Times(0);
     EXPECT_CALL(mockFolder, Release()).Times(1);
 
-    EXPECT_EQ(failure, KnownFolders::PrintKnownFolders(&mockApi, &mockManager));
+    KnownFolders knownFolders(&mockApi);
+    EXPECT_EQ(failure, knownFolders.PrintKnownFolders(&mockManager));
 }
 
 TEST(KnownFolders, PrintKnownFolders_Success) {
@@ -201,16 +167,23 @@ TEST(KnownFolders, PrintKnownFolders_Success) {
     EXPECT_CALL(mockApi, FreeKnownFolderDefinitionFields(_)).Times(2);
     EXPECT_CALL(mockApi, CoTaskMemFree(folderIds)).Times(1);
 
-    EXPECT_EQ(S_OK, KnownFolders::PrintKnownFolders(&mockApi, &mockManager));
+    KnownFolders knownFolders(&mockApi);
+    EXPECT_EQ(S_OK, knownFolders.PrintKnownFolders(&mockManager));
 }
 
 TEST(KnownFolders, KF_CATEGORY_Valid) {
-    EXPECT_STREQ(L"KF_CATEGORY_VIRTUAL", KnownFolders::String_From_KF_CATEGORY(KF_CATEGORY_VIRTUAL));
-    EXPECT_STREQ(L"KF_CATEGORY_FIXED", KnownFolders::String_From_KF_CATEGORY(KF_CATEGORY_FIXED));
-    EXPECT_STREQ(L"KF_CATEGORY_COMMON", KnownFolders::String_From_KF_CATEGORY(KF_CATEGORY_COMMON));
-    EXPECT_STREQ(L"KF_CATEGORY_PERUSER", KnownFolders::String_From_KF_CATEGORY(KF_CATEGORY_PERUSER));
+    ::testing::NiceMock<MockWindowsApi> mockApi;
+    KnownFolders knownFolders(&mockApi);
+
+    EXPECT_STREQ(L"KF_CATEGORY_VIRTUAL", knownFolders.String_From_KF_CATEGORY(KF_CATEGORY_VIRTUAL));
+    EXPECT_STREQ(L"KF_CATEGORY_FIXED", knownFolders.String_From_KF_CATEGORY(KF_CATEGORY_FIXED));
+    EXPECT_STREQ(L"KF_CATEGORY_COMMON", knownFolders.String_From_KF_CATEGORY(KF_CATEGORY_COMMON));
+    EXPECT_STREQ(L"KF_CATEGORY_PERUSER", knownFolders.String_From_KF_CATEGORY(KF_CATEGORY_PERUSER));
 }
 
 TEST(KnownFolders, KF_CATEGORY_Invalid) {
-    EXPECT_STREQ(L"Unrecognized", KnownFolders::String_From_KF_CATEGORY(KF_CATEGORY(-1)));
+    ::testing::NiceMock<MockWindowsApi> mockApi;
+    KnownFolders knownFolders(&mockApi);
+
+    EXPECT_STREQ(L"Unrecognized", knownFolders.String_From_KF_CATEGORY(KF_CATEGORY(-1)));
 }
