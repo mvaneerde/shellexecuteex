@@ -13,9 +13,7 @@ TEST(Run, Cmd_Echo_1) {
         L"--show", L"SW_MINIMIZE",
         L"--no-close-process",
     };
-    bool run = false;
-    ASSERT_HRESULT_SUCCEEDED(prefs.Parse(_countof(argv), argv, run));
-    ASSERT_TRUE(run);
+    ASSERT_HRESULT_SUCCEEDED(prefs.Parse(_countof(argv), argv));
 
     ASSERT_TRUE(api.ShellExecuteExW(&prefs));
 

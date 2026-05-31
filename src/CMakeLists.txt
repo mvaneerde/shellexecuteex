@@ -39,6 +39,8 @@ add_library(
     known-folders.cpp
     main-internal.cpp
     prefs.cpp
+    usage.cpp
+    show-window-command.cpp
     windows-api.cpp
 )
 
@@ -77,6 +79,8 @@ add_executable(
     tests/unit/known-folders.cpp
     tests/unit/main-coinitialize.cpp
     tests/unit/main-return.cpp
+    tests/unit/show-window-command.cpp
+    tests/unit/usage.cpp
     tests/test-helpers.cpp
     tests/test-main.cpp)
 if (MSVC)
@@ -91,7 +95,6 @@ gtest_discover_tests(unit_tests PROPERTIES LABELS "unit")
 
 add_executable(
     functional_tests
-    tests/functional/help.cpp
     tests/functional/prefs-flags.cpp
     tests/functional/prefs-item-id-list-from-display-name.cpp
     tests/functional/prefs-item-id-list-from-known-folder-id.cpp
@@ -99,8 +102,8 @@ add_executable(
     tests/functional/prefs-scenarios.cpp
     tests/functional/prefs-show.cpp
     tests/functional/prefs-string-arguments.cpp
-    tests/functional/prefs-usage.cpp
     tests/functional/run-scenarios.cpp
+    tests/functional/usage.cpp
     tests/test-helpers.cpp
     tests/test-main.cpp)
 if (MSVC)

@@ -1,6 +1,6 @@
 #include "test-common.h"
 
-TEST(Help, KnownFolders_Functional) {
+TEST(Usage, KnownFolders_Functional) {
     WindowsApi api;
 
     ASSERT_HRESULT_SUCCEEDED(api.CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
@@ -10,9 +10,10 @@ TEST(Help, KnownFolders_Functional) {
         L"help", L"known-folders"
     };
 
-    Prefs p(&api);
-    bool run = false;
-    EXPECT_HRESULT_SUCCEEDED(p.Parse(_countof(argv), argv, run));
-    EXPECT_FALSE(run);
+    Usage usage(&api);
+    bool handled = false; // HandleHelp should flip this to true
+    EXPECT_EQ(S_OK, usage.HandleHelp(_countof(argv), argv, handled));
+    EXPECT_TRUE(handled);
+
     api.CoUninitialize();
 }

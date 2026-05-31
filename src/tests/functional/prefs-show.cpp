@@ -10,9 +10,7 @@ TEST(Prefs, ShowValid) {
 
     WindowsApi api;
     Prefs p(&api);
-    bool run = false; // Parse should set this to "true"
-    EXPECT_EQ(S_OK, p.Parse(_countof(notepad_args), notepad_args, run));
-    EXPECT_TRUE(run);
+    EXPECT_EQ(S_OK, p.Parse(_countof(notepad_args), notepad_args));
 }
 
 TEST(Prefs, ShowDuplicate) {
@@ -26,9 +24,7 @@ TEST(Prefs, ShowDuplicate) {
 
     WindowsApi api;
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(notepad_args), notepad_args, run));
-    // no expectation on "run"
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(notepad_args), notepad_args));
 }
 
 TEST(Prefs, ShowInvalid) {
@@ -41,9 +37,7 @@ TEST(Prefs, ShowInvalid) {
 
     WindowsApi api;
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(notepad_args), notepad_args, run));
-    // no expectation on "run"
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(notepad_args), notepad_args));
 }
 
 TEST(Prefs, ShowMissingValue) {
@@ -56,9 +50,7 @@ TEST(Prefs, ShowMissingValue) {
 
     WindowsApi api;
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(notepad_args), notepad_args, run));
-    // no expectation on "run"
+    EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(notepad_args), notepad_args));
 }
 
 TEST(Prefs, ShowDefault) {
@@ -70,8 +62,6 @@ TEST(Prefs, ShowDefault) {
 
     WindowsApi api;
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(S_OK, p.Parse(_countof(notepad_args), notepad_args, run));
-    EXPECT_TRUE(run);
+    EXPECT_EQ(S_OK, p.Parse(_countof(notepad_args), notepad_args));
     EXPECT_EQ(SW_NORMAL, p.nShow);
 }

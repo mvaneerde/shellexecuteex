@@ -41,6 +41,9 @@ TEST(Prefs, StringArguments) {
         // valid case - passing the argument
         // sets the string and the flag
         {
+            std::wstring context = std::wstring(L"arg=") + std::wstring(arg.name);
+            SCOPED_TRACE(context);
+
             LPCWSTR argv[] = {
                 L"ShellExecuteEx.exe",
                 L"--file", L"notepad.exe",
@@ -48,9 +51,7 @@ TEST(Prefs, StringArguments) {
             };
 
             Prefs p(&api);
-            bool run = false;
-            EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
-            EXPECT_TRUE(run);
+            EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv));
 
             LPCWSTR oldValue = *arg.setting;
 
@@ -75,9 +76,7 @@ TEST(Prefs, StringArguments) {
             };
 
             Prefs p(&api);
-            bool run = false;
-            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-            // no expectation on run
+            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
         }
 
         // invalid case - passing the argument twice
@@ -93,9 +92,7 @@ TEST(Prefs, StringArguments) {
             };
 
             Prefs p(&api);
-            bool run = false;
-            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-            // no expectation on run
+            EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
         }
     }
 }
@@ -117,9 +114,7 @@ TEST(Prefs, File) {
         };
 
         Prefs p(&api);
-        bool run = false;
-        EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv, run));
-        EXPECT_TRUE(run);
+        EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv));
 
         ExpectEq_ShellExecuteInfoW(expected, p);
     }
@@ -132,9 +127,7 @@ TEST(Prefs, File) {
         };
 
         Prefs p(&api);
-        bool run = false;
-        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-        // no expectation on run
+        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
     }
 
 
@@ -146,9 +139,7 @@ TEST(Prefs, File) {
         };
 
         Prefs p(&api);
-        bool run = false;
-        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-        // no expectation on run
+        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
     }
 
     // invalid case - double --file
@@ -160,8 +151,6 @@ TEST(Prefs, File) {
         };
 
         Prefs p(&api);
-        bool run = false;
-        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv, run));
-        // no expectation on run
+        EXPECT_EQ(E_INVALIDARG, p.Parse(_countof(argv), argv));
     }
 }

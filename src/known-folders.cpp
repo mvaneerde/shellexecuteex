@@ -1,7 +1,9 @@
 #include "common.h"
 
-HRESULT KnownFolders::GetManager(IWindowsApi *api,IKnownFolderManager **manager) {
-    HRESULT hr = api->CoCreateInstance(
+KnownFolders::KnownFolders(IWindowsApi *api) : m_api(api) {}
+
+HRESULT KnownFolders::GetManager(IKnownFolderManager **manager) {
+    HRESULT hr = m_api->CoCreateInstance(
         CLSID_KnownFolderManager,
         nullptr,
         CLSCTX_INPROC_SERVER,
@@ -16,7 +18,7 @@ HRESULT KnownFolders::GetManager(IWindowsApi *api,IKnownFolderManager **manager)
     return S_OK;
 }
 
-HRESULT KnownFolders::PrintKnownFolders(IWindowsApi *api, IKnownFolderManager *manager) {
+HRESULT KnownFolders::PrintKnownFolders(IKnownFolderManager *manager) {
     KNOWNFOLDERID *folders = nullptr;
     UINT count = 0;
     HRESULT hr = manager->GetFolderIds(&folders, &count);
@@ -24,7 +26,7 @@ HRESULT KnownFolders::PrintKnownFolders(IWindowsApi *api, IKnownFolderManager *m
         LOG(L"IKnownFolderManager::GetFolderIds failed: 0x%08x", hr);
         return hr;
     }
-    CoTaskMemFreeOnExit freeFolders(api, folders);
+    CoTaskMemFreeOnExit freeFolders(m_api, folders);
     
     LOG(L"Known folders: %u", count);
     for (UINT i = 0; i < count; i++) {
@@ -45,7 +47,7 @@ HRESULT KnownFolders::PrintKnownFolders(IWindowsApi *api, IKnownFolderManager *m
             return hr;
         }
 
-        FreeKnownFolderDefinitionFieldsOnExit freeDefinition(api, &definition);
+        FreeKnownFolderDefinitionFieldsOnExit freeDefinition(m_api, &definition);
         LOG(L"    category: %s (%u)", KnownFolders::String_From_KF_CATEGORY(definition.category), definition.category);
         LOG(L"    pszName: %s", definition.pszName);
         LOG(L"    pszDescription: %s", definition.pszDescription);

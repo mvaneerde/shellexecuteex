@@ -8,9 +8,7 @@ TEST(Prefs, Calc) {
 
     WindowsApi api;
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(S_OK, p.Parse(_countof(args), args, run));
-    EXPECT_EQ(true, run);
+    EXPECT_EQ(S_OK, p.Parse(_countof(args), args));
         
     SHELLEXECUTEINFOW expected = { sizeof(expected) };
     expected.hwnd = GetConsoleWindow();
@@ -32,9 +30,7 @@ TEST(Prefs, Command_ListCsvFiles) {
 
     WindowsApi api;
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(S_OK, p.Parse(_countof(args), args, run));
-    EXPECT_EQ(true, run);
+    EXPECT_EQ(S_OK, p.Parse(_countof(args), args));
         
     SHELLEXECUTEINFOW expected = { sizeof(expected) };
     expected.hwnd = GetConsoleWindow();
@@ -56,9 +52,7 @@ TEST(Prefs, Admin_PowerShell) {
 
     WindowsApi api;
     Prefs p(&api);
-    bool run = false;
-    EXPECT_EQ(S_OK, p.Parse(_countof(args), args, run));
-    EXPECT_EQ(true, run);
+    EXPECT_EQ(S_OK, p.Parse(_countof(args), args));
         
     SHELLEXECUTEINFOW expected = { sizeof(expected) };
     expected.hwnd = GetConsoleWindow();

@@ -61,5 +61,7 @@ If (Test-Path $opencppcoverage_log) {
     Move-Item -Path $opencppcoverage_log -Destination $report_dir -Force;
 }
 
+Write-Host "Report at $report_dir";
+
 # relay the exit code to the caller
 Exit $exit_code;

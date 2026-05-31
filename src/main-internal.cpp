@@ -9,28 +9,44 @@ int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
     }
     CoUninitializeOnExit uninit(api);
 
-    // parse command-line arguments
-    bool run = false;
-    Prefs p(api); // inherits from SHELLEXECUTEINFOW
-    hr = p.Parse(argc, argv, run);
+    // handle usage statement
+    Usage usage(api);
+    bool handled = false;
+    hr = usage.HandleUsage(argc, argv, handled);
     if (FAILED(hr)) {
-        // the particular failure is logged inside Prefs::Parse
+        // HandleUsage logs failure
         return hr;
     }
-
-    if (!run) {
-        // just a usage statement
+    if (handled) {
         return 0;
     }
 
-    // actually invoke the API and log the result
+    // handle help requests
+    hr = usage.HandleHelp(argc, argv, handled);
+    if (FAILED(hr)) {
+        // HandleHelp logs failure
+        return hr;
+    }
+    if (handled) {
+        return 0;
+    }
+
+    // parse arguments into a SHELLEXECUTEINFOW struct
+    Prefs p(api); // inherits from SHELLEXECUTEINFOW
+    hr = p.Parse(argc, argv);
+    if (FAILED(hr)) {
+        // Prefs::Parse logs failure
+        return hr;
+    }
+
+    // call ShellExecuteExW and log the result
     if (!api->ShellExecuteExW(&p)) {
         DWORD error = api->GetLastError();
         return p.LogResult(FALSE, error);
     }
-
     p.LogResult(TRUE, ERROR_SUCCESS);
 
+    // wait for the process to exit and relay the exit code
     if (p.RelayExitCode()) {
         if (nullptr == p.hProcess) {
             LOG(L"%s", L"Can't relay exit code because process handle is null");
