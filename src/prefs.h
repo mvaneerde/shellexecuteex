@@ -1,15 +1,27 @@
 // prefs.h
 
-class Prefs : public SHELLEXECUTEINFOW {
+class IPrefs {
+public:
+    virtual HRESULT Parse(int argc, LPCWSTR argv[]) = 0;
+    virtual SHELLEXECUTEINFOW *GetShellExecuteInfo() = 0;
+    virtual int LogResult(BOOL result, DWORD error) = 0;
+    virtual bool RelayExitCode() = 0;
+};
+
+class Prefs : public IPrefs {
 public:
     Prefs(IWindowsApi *api);
     ~Prefs();
-    HRESULT Parse(int argc, LPCWSTR argv[]);
-    int LogResult(BOOL result, DWORD error);
-    bool RelayExitCode();
+
+    // IPrefs
+    HRESULT Parse(int argc, LPCWSTR argv[]) override;
+    int LogResult(BOOL result, DWORD error) override;
+    bool RelayExitCode() override;
+    LPSHELLEXECUTEINFOW GetShellExecuteInfo() override;
 
 private:
-    IWindowsApi *m_api = nullptr;
-    bool m_relayExitCode = false;
+    IWindowsApi *m_api;
+    bool m_relayExitCode;
+    SHELLEXECUTEINFOW info;
 };
 

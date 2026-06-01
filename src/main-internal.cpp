@@ -1,6 +1,14 @@
 #include "common.h"
 
-int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
+int wmain_testable(int argc, LPCWSTR argv[]) {
+    WindowsApi api;
+    Usage usage(&api);
+    Prefs prefs(&api);
+
+    return wmain_mockable(argc, argv, &api, &usage, &prefs);
+}
+
+int wmain_mockable(int argc, LPCWSTR argv[], IWindowsApi *api, IUsage *usage, IPrefs *prefs) {
     // some ShellExecuteEx features require working COM
     HRESULT hr = api->CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     if (FAILED(hr)) {
@@ -10,9 +18,8 @@ int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
     CoUninitializeOnExit uninit(api);
 
     // handle usage statement
-    Usage usage(api);
     bool handled = false;
-    hr = usage.HandleUsage(argc, argv, handled);
+    hr = usage->HandleUsage(argc, argv, handled);
     if (FAILED(hr)) {
         // HandleUsage logs failure
         return hr;
@@ -22,7 +29,7 @@ int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
     }
 
     // handle help requests
-    hr = usage.HandleHelp(argc, argv, handled);
+    hr = usage->HandleHelp(argc, argv, handled);
     if (FAILED(hr)) {
         // HandleHelp logs failure
         return hr;
@@ -32,30 +39,31 @@ int wmain_internal(int argc, LPCWSTR argv[], IWindowsApi *api) {
     }
 
     // parse arguments into a SHELLEXECUTEINFOW struct
-    Prefs p(api); // inherits from SHELLEXECUTEINFOW
-    hr = p.Parse(argc, argv);
+    hr = prefs->Parse(argc, argv);
     if (FAILED(hr)) {
         // Prefs::Parse logs failure
         return hr;
     }
 
     // call ShellExecuteExW and log the result
-    if (!api->ShellExecuteExW(&p)) {
+    if (!api->ShellExecuteExW(prefs->GetShellExecuteInfo())) {
         DWORD error = api->GetLastError();
-        return p.LogResult(FALSE, error);
+        return prefs->LogResult(FALSE, error);
     }
-    p.LogResult(TRUE, ERROR_SUCCESS);
+    
+    prefs->LogResult(TRUE, ERROR_SUCCESS);
 
     // wait for the process to exit and relay the exit code
-    if (p.RelayExitCode()) {
-        if (nullptr == p.hProcess) {
+    if (prefs->RelayExitCode()) {
+        HANDLE process = prefs->GetShellExecuteInfo()->hProcess;
+        if (nullptr == process) {
             LOG(L"%s", L"Can't relay exit code because process handle is null");
             return ERROR_INVALID_HANDLE;
         }
 
-        api->WaitForSingleObject(p.hProcess, INFINITE);
+        api->WaitForSingleObject(process, INFINITE);
         DWORD exitCode = 0;
-        if (!api->GetExitCodeProcess(p.hProcess, &exitCode)) {
+        if (!api->GetExitCodeProcess(process, &exitCode)) {
             DWORD error = api->GetLastError();
             LOG(L"GetExitCodeProcess failed: 0x%08x", error);
             return error;

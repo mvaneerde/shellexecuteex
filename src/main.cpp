@@ -1,6 +1,5 @@
 #include "common.h"
 
 int wmain(int argc, LPCWSTR argv[]) {
-    WindowsApi api;
-    return wmain_internal(argc, argv, &api);
+    return wmain_testable(argc, argv);
 }

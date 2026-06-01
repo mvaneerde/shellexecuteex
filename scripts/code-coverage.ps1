@@ -1,11 +1,11 @@
 # calls OpenCppCoverage and produces a report in XML and HTML format
 Param(
-    [string]$build_dir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".." "build")),
+    [string]$build_dir = (Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath ".." -Resolve) -ChildPath "build"), 
     [string]$config = "Debug",
     [string]$modules = "*_tests.exe",
     [string]$opencppcoverage_path = "OpenCppCoverage.exe",
-    [string]$report_dir = (Join-Path $env:temp "coverage_report"),
-    [string]$source_dir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".." "src")),
+    [string]$report_dir = (Join-Path -Path $env:temp -ChildPath "coverage_report"),
+    [string]$source_dir = (Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath ".." -Resolve) -ChildPath "src"),
     [switch]$verbose
 )
 

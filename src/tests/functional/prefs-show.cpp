@@ -63,5 +63,6 @@ TEST(Prefs, ShowDefault) {
     WindowsApi api;
     Prefs p(&api);
     EXPECT_EQ(S_OK, p.Parse(_countof(notepad_args), notepad_args));
-    EXPECT_EQ(SW_NORMAL, p.nShow);
+    LPSHELLEXECUTEINFOW info = p.GetShellExecuteInfo();
+    EXPECT_EQ(SW_NORMAL, info->nShow);
 }
