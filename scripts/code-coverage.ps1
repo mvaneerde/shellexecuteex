@@ -1,11 +1,13 @@
 # calls OpenCppCoverage and produces a report in XML and HTML format
 Param(
-    [string]$build_dir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".." "build")),
+    [string]$build_dir = (Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath ".." -Resolve) -ChildPath "build"), 
     [string]$config = "Debug",
     [string]$modules = "*_tests.exe",
     [string]$opencppcoverage_path = "OpenCppCoverage.exe",
-    [string]$report_dir = (Join-Path $env:temp "coverage_report"),
-    [string]$source_dir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".." "src")),
+    [string]$report_dir = (Join-Path -Path $env:temp -ChildPath "coverage_report"),
+    [string]$source_dir = (Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath ".." -Resolve) -ChildPath "src"),
+    [string]$test_label = "",
+    [string]$test_regex = "",
     [switch]$verbose
 )
 
@@ -25,6 +27,15 @@ $excluded_dir = Join-Path $source_dir "tests";
 # build coverage command
 $coverage_args = [string[]]@(
     "--cover_children",
+
+    # the compiler creates instructions for lines that look like this:
+    # } else {
+    # or even just
+    # }
+    # see https://github.com/OpenCppCoverage/OpenCppCoverage/wiki/FAQ#else-or--is-not-marked-as-covered
+    "--excluded_line_regex", "^\s*(\} )?else( \{)?\s*$",
+    "--excluded_line_regex", "^\s*\}\s*$",
+
     "--excluded_sources", $excluded_dir,
     "--export_type", "cobertura:${coverage_xml}",
     "--export_type", "html:${coverage_html}",
@@ -36,13 +47,22 @@ If ($verbose) {
     $coverage_args += "--verbose";
 }
 
-$coverage_args += @(
-    "--",
-    "ctest",
-        "--build-config", $config,
-        "--test-dir", $build_dir,
-        "--output-on-failure"
+$ctest_args = [string[]]@(
+    "--build-config", $config,
+    "--test-dir", $build_dir,
+    "--output-on-failure"
 );
+
+If ($test_label) {
+    $ctest_args += @("-L", $test_label);
+}
+
+If ($test_regex) {
+    $ctest_args += @("-R", $test_regex);
+}
+
+$coverage_args += @("--", "ctest");
+$coverage_args += $ctest_args;
 
 # write the command to the report directory
 ($opencppcoverage_path, ($coverage_args -join " ")) -join " " |

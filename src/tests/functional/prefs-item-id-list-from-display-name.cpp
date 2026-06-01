@@ -49,8 +49,9 @@ TEST(Prefs, ItemIdListFromDisplayName_CanonicalName) {
     Prefs p(&api);
     bool run = false;
     EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv));
-    EXPECT_EQ(SEE_MASK_IDLIST, p.fMask);
-    EXPECT_NE(nullptr, p.lpIDList);
+    LPSHELLEXECUTEINFOW info = p.GetShellExecuteInfo();
+    EXPECT_EQ(SEE_MASK_IDLIST, info->fMask);
+    EXPECT_NE(nullptr, info->lpIDList);
 }
 
 TEST(Prefs, ItemIdListFromDisplayName_DisplayName) {
@@ -65,8 +66,9 @@ TEST(Prefs, ItemIdListFromDisplayName_DisplayName) {
 
     Prefs p(&api);
     EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv));
-    EXPECT_EQ(SEE_MASK_IDLIST, p.fMask);
-    EXPECT_NE(nullptr, p.lpIDList);
+    LPSHELLEXECUTEINFOW info = p.GetShellExecuteInfo();
+    EXPECT_EQ(SEE_MASK_IDLIST, info->fMask);
+    EXPECT_NE(nullptr, info->lpIDList);
     CoUninitialize();
 }
 

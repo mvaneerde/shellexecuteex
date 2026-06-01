@@ -75,10 +75,9 @@ include(GoogleTest)
 
 add_executable(
     unit_tests
-    tests/unit/help.cpp
     tests/unit/known-folders.cpp
-    tests/unit/main-coinitialize.cpp
-    tests/unit/main-return.cpp
+    tests/unit/main.cpp
+    tests/unit/prefs.cpp
     tests/unit/show-window-command.cpp
     tests/unit/usage.cpp
     tests/test-helpers.cpp

@@ -77,7 +77,9 @@ TEST(Prefs, Flags) {
             expected.lpFile = L"notepad.exe";
             expected.nShow = SW_NORMAL;
 
-            ExpectEq_ShellExecuteInfoW(expected, p);
+            LPSHELLEXECUTEINFOW actual = p.GetShellExecuteInfo();
+
+            ExpectEq_ShellExecuteInfoW(expected, *actual);
         }
 
         // invalid case - passing argument twice

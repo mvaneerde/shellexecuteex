@@ -58,7 +58,9 @@ TEST(Prefs, StringArguments) {
             *arg.setting = L"foo";
             expected.fMask = arg.flag;
 
-            ExpectEq_ShellExecuteInfoW(expected, p);
+            LPSHELLEXECUTEINFO actual = p.GetShellExecuteInfo();
+
+            ExpectEq_ShellExecuteInfoW(expected, *actual);
 
             // reset for the next loop
             *arg.setting = oldValue;
@@ -116,7 +118,9 @@ TEST(Prefs, File) {
         Prefs p(&api);
         EXPECT_EQ(S_OK, p.Parse(_countof(argv), argv));
 
-        ExpectEq_ShellExecuteInfoW(expected, p);
+        LPSHELLEXECUTEINFO actual = p.GetShellExecuteInfo();
+
+        ExpectEq_ShellExecuteInfoW(expected, *actual);
     }
 
     // invalid case - --file missing

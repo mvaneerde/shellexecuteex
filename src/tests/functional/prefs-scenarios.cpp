@@ -15,7 +15,9 @@ TEST(Prefs, Calc) {
     expected.lpFile = L"calc.exe";
     expected.nShow = SW_NORMAL;
 
-    ExpectEq_ShellExecuteInfoW(expected, p);
+    LPSHELLEXECUTEINFO actual = p.GetShellExecuteInfo();
+
+    ExpectEq_ShellExecuteInfoW(expected, *actual);
 }
 
 TEST(Prefs, Command_ListCsvFiles) {
@@ -40,7 +42,9 @@ TEST(Prefs, Command_ListCsvFiles) {
     expected.lpDirectory = L"%userprofile%\\Downloads";
     expected.nShow = SW_SHOWMINIMIZED;
 
-    ExpectEq_ShellExecuteInfoW(expected, p);
+    LPSHELLEXECUTEINFO actual = p.GetShellExecuteInfo();
+
+    ExpectEq_ShellExecuteInfoW(expected, *actual);
 }
 
 TEST(Prefs, Admin_PowerShell) {
@@ -60,5 +64,7 @@ TEST(Prefs, Admin_PowerShell) {
     expected.lpFile = L"powershell.exe";
     expected.nShow = SW_NORMAL;
 
-    ExpectEq_ShellExecuteInfoW(expected, p);
+    LPSHELLEXECUTEINFO actual = p.GetShellExecuteInfo();
+
+    ExpectEq_ShellExecuteInfoW(expected, *actual);
 }

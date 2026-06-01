@@ -1,20 +1,21 @@
 #include "common.h"
 
 Prefs::Prefs(IWindowsApi *api) :
-    SHELLEXECUTEINFOW { sizeof(SHELLEXECUTEINFOW) },
-    m_api(api)
+    m_api(api),
+    m_relayExitCode(false),
+    info({ sizeof(info) })
 {
-    hwnd = m_api->GetConsoleWindow();
-    nShow = SW_NORMAL;
+    info.hwnd = m_api->GetConsoleWindow();
+    info.nShow = SW_NORMAL;
 }
 
 Prefs::~Prefs() {
-    if (hProcess != nullptr) {
-        m_api->CloseHandle(hProcess);
+    if (info.hProcess != nullptr) {
+        m_api->CloseHandle(info.hProcess);
     }
 
-    if (lpIDList != nullptr) {
-        m_api->CoTaskMemFree(lpIDList);
+    if (info.lpIDList != nullptr) {
+        m_api->CoTaskMemFree(info.lpIDList);
     }
 }
 
@@ -59,10 +60,10 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
     };
     
     std::map<LPCWSTR, StringArg, StringCompare> stringArgs = {
-        { L"--directory", StringArg(&lpDirectory) },
-        { L"--file", StringArg(&lpFile) },
-        { L"--parameters", StringArg(&lpParameters) },
-        { L"--verb", StringArg(&lpVerb) },
+        { L"--directory", StringArg(&info.lpDirectory) },
+        { L"--file", StringArg(&info.lpFile) },
+        { L"--parameters", StringArg(&info.lpParameters) },
+        { L"--verb", StringArg(&info.lpVerb) },
     };
 
     // mask options
@@ -75,8 +76,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
     // SEE_MASK_FLAG_HINST_IS_SITE TODO
 
     bool seenClass = false;
-    bool seenItemIdListFromDisplayName = false;
-    bool seenItemIdListFromKnownFolderId = false;
+    bool seenItemIdList = false;
     bool seenRelayExitCode = false;
     bool seenShow = false;
 
@@ -91,7 +91,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
                     return E_INVALIDARG;
                 }
                 arg.seen = true;
-                fMask |= arg.flag;
+                info.fMask |= arg.flag;
                 continue;
             }
         }
@@ -131,8 +131,8 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
                 return E_INVALIDARG;
             }
 
-            fMask |= SEE_MASK_CLASSNAME;
-            lpClass = argv[i];
+            info.fMask |= SEE_MASK_CLASSNAME;
+            info.lpClass = argv[i];
             continue;
         }
 
@@ -150,11 +150,11 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
 
         // --item-id-list-from-display-name
         if (0 == _wcsicmp(argv[i], L"--item-id-list-from-display-name")) {
-            if (seenItemIdListFromDisplayName) {
-                LOG(L"%s", L"Multiple --item-id-list-from-display-name arguments passed");
+            if (seenItemIdList) {
+                LOG(L"%s", L"Multiple item-id-list arguments passed");
                 return E_INVALIDARG;
             }
-            seenItemIdListFromDisplayName = true;
+            seenItemIdList = true;
 
             i++;
             if (i == argc) {
@@ -162,12 +162,12 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
                 return E_INVALIDARG;
             }
 
-            fMask |= SEE_MASK_IDLIST;
+            info.fMask |= SEE_MASK_IDLIST;
 
             HRESULT hr = m_api->SHParseDisplayName(
                 argv[i],
                 nullptr,
-                reinterpret_cast<LPITEMIDLIST*>(&lpIDList),
+                reinterpret_cast<LPITEMIDLIST*>(&info.lpIDList),
                 0,
                 nullptr);
             if (FAILED(hr)) { 
@@ -179,11 +179,11 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
 
         // --item-id-list-from-known-folder-id
         if (0 == _wcsicmp(argv[i], L"--item-id-list-from-known-folder-id")) {
-            if (seenItemIdListFromKnownFolderId) {
-                LOG(L"%s", L"Multiple --item-id-list-from-known-folder-id arguments passed");
+            if (seenItemIdList) {
+                LOG(L"%s", L"Multiple --item-id-list arguments passed");
                 return E_INVALIDARG;
             }
-            seenItemIdListFromKnownFolderId = true;
+            seenItemIdList = true;
 
             i++;
             if (i == argc) {
@@ -191,7 +191,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
                 return E_INVALIDARG;
             }
 
-            fMask |= SEE_MASK_IDLIST;
+            info.fMask |= SEE_MASK_IDLIST;
 
             GUID clsid = {};
             HRESULT hr = m_api->IIDFromString(argv[i], &clsid);
@@ -204,7 +204,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
                 clsid,
                 0,
                 nullptr,
-                reinterpret_cast<LPITEMIDLIST*>(&lpIDList)
+                reinterpret_cast<LPITEMIDLIST*>(&info.lpIDList)
             );
             if (FAILED(hr)) {
                 LOG(L"SHGetKnownFolderIDList failed: 0x%08x", hr);
@@ -227,7 +227,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
                 return E_INVALIDARG;
             }
 
-            HRESULT hr = ShowWindowCommand::ParseShowWindowCommand(argv[i], nShow);
+            HRESULT hr = ShowWindowCommand::ParseShowWindowCommand(argv[i], info.nShow);
             if (FAILED(hr)) {
                 // ShowWindowCommand::ParseShowWindowCommand logs failure
                 return hr;
@@ -242,8 +242,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
 
     if (1 !=
         (stringArgs.at(L"--file").seen ? 1 : 0) +
-        (seenItemIdListFromDisplayName ? 1 : 0) +
-        (seenItemIdListFromKnownFolderId ? 1 : 0)) {
+        (seenItemIdList ? 1 : 0)) {
         LOG(L"%s", L"Specify precisely one of --file, --item-id-list-from-display-name, or --item-id-list-from-known-folder-id");
         return E_INVALIDARG;
     }
@@ -258,23 +257,10 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
     return S_OK;
 }
 
-int Prefs::LogResult(BOOL result, DWORD error) {
-    LOG(L"ShellExecuteExW %s", (result ? L"succeeded" : L"failed"));
-    if (result) {
-        LOG(L"hProcess: 0x%p", hProcess);
-    } else {
-        LOG(L"Last error: %d", error);
-    }
-    LOG(L"hInstApp: 0x%p", hInstApp);
-    
-    if (result == FALSE && error == ERROR_SUCCESS) {
-        LOG(L"%s", L"ShellExecuteExW failed but no error was set");
-        return ERROR_INTERNAL_ERROR;
-    } else {
-        return error;
-    }
-}
-
 bool Prefs::RelayExitCode() {
     return m_relayExitCode;
+}
+
+LPSHELLEXECUTEINFOW Prefs::GetShellExecuteInfo() {
+    return &info;
 }
