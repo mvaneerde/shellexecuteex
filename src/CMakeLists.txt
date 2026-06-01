@@ -77,6 +77,7 @@ add_executable(
     unit_tests
     tests/unit/known-folders.cpp
     tests/unit/main.cpp
+    tests/unit/prefs.cpp
     tests/unit/show-window-command.cpp
     tests/unit/usage.cpp
     tests/test-helpers.cpp
