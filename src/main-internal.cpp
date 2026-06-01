@@ -48,10 +48,13 @@ int wmain_mockable(int argc, LPCWSTR argv[], IWindowsApi *api, IUsage *usage, IP
     // call ShellExecuteExW and log the result
     if (!api->ShellExecuteExW(prefs->GetShellExecuteInfo())) {
         DWORD error = api->GetLastError();
-        return prefs->LogResult(FALSE, error);
+        LOG(L"ShellExecuteExW failed: last error %d", error);
+        return error;
     }
     
-    prefs->LogResult(TRUE, ERROR_SUCCESS);
+    LOG(L"ShellExecuteExW succeeded");
+    LOG(L"    hProcess: 0x%p", prefs->GetShellExecuteInfo()->hProcess);
+    LOG(L"    hInstApp: 0x%p", prefs->GetShellExecuteInfo()->hInstApp);
 
     // wait for the process to exit and relay the exit code
     if (prefs->RelayExitCode()) {
@@ -61,12 +64,26 @@ int wmain_mockable(int argc, LPCWSTR argv[], IWindowsApi *api, IUsage *usage, IP
             return ERROR_INVALID_HANDLE;
         }
 
-        api->WaitForSingleObject(process, INFINITE);
+        DWORD waitResult = api->WaitForSingleObject(process, INFINITE);
+        if (WAIT_OBJECT_0 != waitResult) {
+            DWORD error = api->GetLastError();
+            LOG(L"WaitForSingleObject returned unexpected 0x%08x: last error %d", waitResult, error);
+            if (error == ERROR_SUCCESS) {
+                return ERROR_INTERNAL_ERROR;
+            } else {
+                return error;
+            }
+        }
+
         DWORD exitCode = 0;
         if (!api->GetExitCodeProcess(process, &exitCode)) {
             DWORD error = api->GetLastError();
-            LOG(L"GetExitCodeProcess failed: 0x%08x", error);
-            return error;
+            LOG(L"GetExitCodeProcess failed: last error %d", error);
+            if (error == ERROR_SUCCESS) {
+                return ERROR_INTERNAL_ERROR;
+            } else {
+                return error;
+            }
         }
 
         LOG(L"Child process returned %d", exitCode);

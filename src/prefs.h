@@ -4,7 +4,6 @@ class IPrefs {
 public:
     virtual HRESULT Parse(int argc, LPCWSTR argv[]) = 0;
     virtual SHELLEXECUTEINFOW *GetShellExecuteInfo() = 0;
-    virtual int LogResult(BOOL result, DWORD error) = 0;
     virtual bool RelayExitCode() = 0;
 };
 
@@ -15,7 +14,6 @@ public:
 
     // IPrefs
     HRESULT Parse(int argc, LPCWSTR argv[]) override;
-    int LogResult(BOOL result, DWORD error) override;
     bool RelayExitCode() override;
     LPSHELLEXECUTEINFOW GetShellExecuteInfo() override;
 

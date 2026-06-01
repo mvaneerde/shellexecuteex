@@ -6,6 +6,7 @@ Param(
     [string]$opencppcoverage_path = "OpenCppCoverage.exe",
     [string]$report_dir = (Join-Path -Path $env:temp -ChildPath "coverage_report"),
     [string]$source_dir = (Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath ".." -Resolve) -ChildPath "src"),
+    [string]$test_regex = ".*",
     [switch]$verbose
 )
 
@@ -39,6 +40,7 @@ If ($verbose) {
 $coverage_args += @(
     "--",
     "ctest",
+        "-R", $test_regex,
         "--build-config", $config,
         "--test-dir", $build_dir,
         "--output-on-failure"

@@ -257,23 +257,6 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
     return S_OK;
 }
 
-int Prefs::LogResult(BOOL result, DWORD error) {
-    LOG(L"ShellExecuteExW %s", (result ? L"succeeded" : L"failed"));
-    if (result) {
-        LOG(L"hProcess: 0x%p", info.hProcess);
-    } else {
-        LOG(L"Last error: %d", error);
-    }
-    LOG(L"hInstApp: 0x%p", info.hInstApp);
-    
-    if (result == FALSE && error == ERROR_SUCCESS) {
-        LOG(L"%s", L"ShellExecuteExW failed but no error was set");
-        return ERROR_INTERNAL_ERROR;
-    } else {
-        return error;
-    }
-}
-
 bool Prefs::RelayExitCode() {
     return m_relayExitCode;
 }

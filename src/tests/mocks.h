@@ -83,7 +83,6 @@ public:
 class MockPrefs : public IPrefs {
 public:
     MOCK_METHOD(HRESULT, Parse, (int, LPCWSTR[]), (override));
-    MOCK_METHOD(int, LogResult, (BOOL, DWORD), (override));
     MOCK_METHOD(bool, RelayExitCode, (), (override));
     MOCK_METHOD(LPSHELLEXECUTEINFOW, GetShellExecuteInfo, (), (override));
 };
