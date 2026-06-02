@@ -11,13 +11,74 @@ Param(
     [switch]$verbose
 )
 
+Function Save-RunnableCommand {
+    Param(
+        [string[]]$command_array,
+        [string]$output_path
+    )
+
+    # Prepare a command string that is properly quoted for copy-pasting into PowerShell.
+    $quoted_args = $command_array | ForEach-Object {
+        # Quote the argument if it contains any character that isn't a "safe" shell character.
+        If ($_ -match '[^a-zA-Z0-9\.\\\/_:-]') {
+            "'$($_.Replace("'", "''"))'";
+        } Else {
+            $_;
+        }
+    };
+
+    # If the executable path (first element) is quoted, PowerShell requires the call operator '&' to run it.
+    If ($quoted_args[0] -match "^'") {
+        $quoted_args[0] = "& $($quoted_args[0])";
+    }
+
+    # Format the command for readability: one parameter and its value per line, tab-indented.
+    $formatted_lines = @($quoted_args[0]);
+    $after_separator = $False;
+    $is_first_after_separator = $False;
+
+    For ($i = 1; $i -lt $quoted_args.Count; $i++) {
+        $arg = $quoted_args[$i];
+
+        # Handle the -- separator specially: it doesn't take a value and changes indentation
+        If ($arg -eq '--') {
+            $formatted_lines += "`t$arg";
+            $after_separator = $True;
+            $is_first_after_separator = $True;
+            Continue;
+        }
+
+        # Determine indentation level:
+        # - Arguments before --: Single-indented
+        # - First argument after -- (the command): Double-indented
+        # - Subsequent arguments (the command's parameters): Triple-indented
+        $indent = If ($after_separator) {
+            If ($is_first_after_separator) { "`t`t"; } Else { "`t`t`t"; }
+        } Else {
+            "`t";
+        };
+
+        # Pair flags with their values (if the next arg isn't another flag)
+        If ($arg -match "^'?-+" -and ($i + 1) -lt $quoted_args.Count -and $quoted_args[$i+1] -notmatch "^'?-+") {
+            $formatted_lines += "$indent$arg $($quoted_args[$i+1])";
+            $i++;
+        } Else {
+            $formatted_lines += "$indent$arg";
+        }
+        $is_first_after_separator = $False;
+    }
+
+    # Join with backticks for PowerShell line continuation
+    $formatted_lines -join " ``$([Environment]::NewLine)" | Out-File -FilePath $output_path -Encoding utf8;
+}
+
 # create the directory if it doesn't already exist
 If (-Not (Test-Path -Path $report_dir -PathType Container)) {
     New-Item -Path $report_dir -ItemType Directory -Force | Out-Null;
 }
 
 $coverage_html = $report_dir;
-$command_path = Join-Path $report_dir "coverage_command.txt";
+$command_path = Join-Path $report_dir "coverage_command.ps1";
 $coverage_exit_code_path = Join-Path $report_dir "coverage_exit_code.txt";
 $coverage_log = Join-Path $report_dir "coverage.log";
 $coverage_err = Join-Path $report_dir "coverage.err";
@@ -65,10 +126,7 @@ $coverage_args += @("--", "ctest");
 $coverage_args += $ctest_args;
 
 # write the command to the report directory
-($opencppcoverage_path, ($coverage_args -join " ")) -join " " |
-    Out-File `
-        -FilePath $command_path `
-        -Encoding utf8;
+Save-RunnableCommand -command_array (@($opencppcoverage_path) + $coverage_args) -output_path $command_path;
 
 # run code coverage
 # save the log, the error log, and the exit code

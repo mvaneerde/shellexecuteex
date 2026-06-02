@@ -3,3 +3,6 @@
 
 # ignore CMake build output
 /build/
+
+# ignore coverage report
+/coverage_report/
