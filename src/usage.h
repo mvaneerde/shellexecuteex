@@ -8,13 +8,14 @@ public:
 
 class Usage : public IUsage {
 public:
-    Usage(IWindowsApi *api);
+    Usage(IKnownFolders *knownFolders, IWindowsApi *api);
 
     // IUsage
     HRESULT HandleUsage(int argc, LPCWSTR argv[], bool &handled) override;
     HRESULT HandleHelp(int argc, LPCWSTR argv[], bool &handled) override;
 
 private:
+    IKnownFolders *m_knownFolders;
     IWindowsApi *m_api;
 
     bool IsUsage(int argc, LPCWSTR argv[]);

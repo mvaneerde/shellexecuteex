@@ -1,11 +1,13 @@
 #include "common.h"
 
-Usage::Usage(IWindowsApi *api) : m_api(api) {}
+Usage::Usage(IKnownFolders *knownFolders, IWindowsApi *api) : m_knownFolders(knownFolders), m_api(api) {}
 
 HRESULT Usage::HandleUsage(int argc, LPCWSTR argv[], bool &handled) {
     if (IsUsage(argc, argv)) {
         ShowUsage();
         handled = true;
+    } else {
+        handled = false;
     }
 
     return S_OK;
@@ -22,13 +24,14 @@ HRESULT Usage::HandleHelp(int argc, LPCWSTR argv[], bool &handled) {
 
     if (help) {
         hr = ShowHelp(topic);
-
         if (FAILED(hr)) {
             // ShowHelp logs failure 
             return hr;
         }
 
         handled = true;
+    } else {
+        handled = false;
     }
 
     return S_OK;
@@ -146,16 +149,15 @@ HRESULT Usage::ShowHelp(LPCWSTR topic) {
 HRESULT Usage::ShowHelpKnownFolders() {
     LOG(L"%s", L"These are the known folders on your system:");
 
-    KnownFolders knownFolders(m_api);
     IKnownFolderManager *manager = nullptr;
-    HRESULT hr = knownFolders.GetManager(&manager);
+    HRESULT hr = m_knownFolders->GetManager(&manager);
     if (FAILED(hr)) {
         // GetManager logs failure
         return hr;
     }
     ReleaseOnExit releaseManager(manager);
 
-    hr = knownFolders.PrintKnownFolders(manager);
+    hr = m_knownFolders->PrintKnownFolders(manager);
     if (FAILED(hr)) {
         // PrintKnownFolders logs failure
         return hr;

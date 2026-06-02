@@ -2,6 +2,7 @@
 
 TEST(Main, Api_CoInitializeEx_Failed) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -26,11 +27,12 @@ TEST(Main, Api_CoInitializeEx_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Usage_HandleUsage_Failed) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -65,12 +67,13 @@ TEST(Main, Usage_HandleUsage_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 
 TEST(Main, Usage_Handle_Usage_Handled) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -105,11 +108,12 @@ TEST(Main, Usage_Handle_Usage_Handled) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Usage_HandleHelp_Failed) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -144,11 +148,12 @@ TEST(Main, Usage_HandleHelp_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Usage_HandleHelp_Handled) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -183,11 +188,12 @@ TEST(Main, Usage_HandleHelp_Handled) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Prefs_Parse_Failed) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -222,11 +228,12 @@ TEST(Main, Prefs_Parse_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, No_Relay_Exit_Code) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -267,11 +274,12 @@ TEST(Main, No_Relay_Exit_Code) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Api_ShellExecuteEx_Failed) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -308,11 +316,12 @@ TEST(Main, Api_ShellExecuteEx_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Relay_Exit_Code_Null_Process) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -354,11 +363,12 @@ TEST(Main, Relay_Exit_Code_Null_Process) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(ERROR_INVALID_HANDLE, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(ERROR_INVALID_HANDLE, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Relay_Exit_Code_Wait_Failed) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -402,11 +412,12 @@ TEST(Main, Relay_Exit_Code_Wait_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Relay_Exit_Code_Wait_Failed_No_Error) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -450,11 +461,12 @@ TEST(Main, Relay_Exit_Code_Wait_Failed_No_Error) {
     };
 
     // main should return a non-zero code (any code will do)
-    EXPECT_NE(0, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_NE(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -499,11 +511,12 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed_No_Error) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -548,11 +561,12 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed_No_Error) {
     };
 
     // main should return a non-zero code (any code will do)
-    EXPECT_NE(0, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_NE(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
 
 TEST(Main, Relay_Exit_Code_Valid) {
     ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
 
@@ -600,5 +614,5 @@ TEST(Main, Relay_Exit_Code_Valid) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
 }
