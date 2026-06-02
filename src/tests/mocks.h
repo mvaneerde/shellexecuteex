@@ -74,6 +74,13 @@ public:
     MOCK_METHOD(HRESULT, GetFolderType, (FOLDERTYPEID *), (override));
 };
 
+class MockKnownFolders : public IKnownFolders {
+public:
+    MOCK_METHOD(HRESULT, GetManager, (IKnownFolderManager **), (override));
+    MOCK_METHOD(HRESULT, PrintKnownFolders, (IKnownFolderManager *), (override));
+    MOCK_METHOD(LPCWSTR, String_From_KF_CATEGORY, (KF_CATEGORY), (override));
+};
+
 class MockUsage : public IUsage {
 public:
     MOCK_METHOD(HRESULT, HandleUsage, (int, LPCWSTR[], bool &), (override));

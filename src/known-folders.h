@@ -6,9 +6,11 @@ public:
     virtual LPCWSTR String_From_KF_CATEGORY(KF_CATEGORY category) = 0;
 };
 
-class KnownFolders : IKnownFolders {
+class KnownFolders : public IKnownFolders {
 public:
     KnownFolders(IWindowsApi *api);
+
+    // IKnownFolders
     HRESULT GetManager(IKnownFolderManager **manager) override;
     HRESULT PrintKnownFolders(IKnownFolderManager *manager) override;
     LPCWSTR String_From_KF_CATEGORY(KF_CATEGORY category) override;

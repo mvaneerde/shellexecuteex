@@ -2,13 +2,21 @@
 
 int wmain_testable(int argc, LPCWSTR argv[]) {
     WindowsApi api;
-    Usage usage(&api);
+    KnownFolders knownFolders(&api);
+    Usage usage(&knownFolders, &api);
     Prefs prefs(&api);
 
-    return wmain_mockable(argc, argv, &api, &usage, &prefs);
+    return wmain_mockable(argc, argv, &api, &knownFolders, &usage, &prefs);
 }
 
-int wmain_mockable(int argc, LPCWSTR argv[], IWindowsApi *api, IUsage *usage, IPrefs *prefs) {
+int wmain_mockable(
+    int argc,
+    LPCWSTR argv[],
+    IWindowsApi *api,
+    IKnownFolders *knownFolders,
+    IUsage *usage,
+    IPrefs *prefs
+) {
     // some ShellExecuteEx features require working COM
     HRESULT hr = api->CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     if (FAILED(hr)) {
