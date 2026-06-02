@@ -54,22 +54,33 @@ int wmain_mockable(
     }
 
     // call ShellExecuteExW and log the result
-    if (!api->ShellExecuteExW(prefs->GetShellExecuteInfo())) {
+    LPSHELLEXECUTEINFOW info = prefs->GetShellExecuteInfo();
+    if (!api->ShellExecuteExW(info)) {
         DWORD error = api->GetLastError();
-        LOG(L"ShellExecuteExW failed: last error %d", error);
+        LOG(L"ShellExecuteExW failed: last error %d, hInstApp: 0x%p", error, info->hInstApp);
         return error;
     }
     
     LOG(L"ShellExecuteExW succeeded");
-    LOG(L"    hProcess: 0x%p", prefs->GetShellExecuteInfo()->hProcess);
-    LOG(L"    hInstApp: 0x%p", prefs->GetShellExecuteInfo()->hInstApp);
+    LOG(L"    hProcess: 0x%p", info->hProcess);
+    LOG(L"    hInstApp: 0x%p", info->hInstApp);
 
     // wait for the process to exit and relay the exit code
     if (prefs->RelayExitCode()) {
-        HANDLE process = prefs->GetShellExecuteInfo()->hProcess;
+        HANDLE process = info->hProcess;
         if (nullptr == process) {
-            LOG(L"%s", L"Can't relay exit code because process handle is null");
-            return ERROR_INVALID_HANDLE;
+            // No process handle was returned. This is common for Shell extensions 
+            // and internal verbs (like 'properties'). We must pump messages to 
+            // keep the modeless UI alive.
+            LOG(L"%s", L"Process handle is null; entering message loop to host Shell UI.");
+            
+            MSG msg = {};
+            // GetMessageW returns -1 on error, 0 on WM_QUIT, and non-zero otherwise.
+            while (api->GetMessageW(&msg, nullptr, 0, 0) > 0) {
+                api->TranslateMessage(&msg);
+                api->DispatchMessageW(&msg);
+            }
+            return 0;
         }
 
         DWORD waitResult = api->WaitForSingleObject(process, INFINITE);

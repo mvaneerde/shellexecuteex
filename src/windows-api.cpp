@@ -26,6 +26,10 @@ void WindowsApi::CoUninitialize() {
     return ::CoUninitialize();
 }
 
+LRESULT WindowsApi::DispatchMessageW(const MSG *msg) {
+    return ::DispatchMessageW(msg);
+}
+
 void WindowsApi::FreeKnownFolderDefinitionFields(KNOWNFOLDER_DEFINITION *d) {
     return ::FreeKnownFolderDefinitionFields(d);
 }
@@ -36,6 +40,10 @@ HWND WindowsApi::GetConsoleWindow() {
 
 BOOL WindowsApi::GetExitCodeProcess(HANDLE process, LPDWORD exitCode) {
     return ::GetExitCodeProcess(process, exitCode);
+}
+
+BOOL WindowsApi::GetMessageW(LPMSG msg, HWND wnd, UINT filterMin, UINT filterMax) {
+    return ::GetMessageW(msg, wnd, filterMin, filterMax);
 }
 
 DWORD WindowsApi::GetLastError() {
@@ -69,6 +77,9 @@ HRESULT WindowsApi::SHParseDisplayName(
     return ::SHParseDisplayName(name, context, idlist, in, out);
 }
 
+BOOL WindowsApi::TranslateMessage(const MSG *lpMsg) {
+    return ::TranslateMessage(lpMsg);
+}
 
 DWORD WindowsApi::WaitForSingleObject(HANDLE h, DWORD milliseconds) {
     return ::WaitForSingleObject(h, milliseconds);

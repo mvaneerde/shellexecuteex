@@ -14,9 +14,11 @@ public:
     ) = 0;
     virtual void CoTaskMemFree(LPVOID p) = 0;
     virtual void CoUninitialize() = 0;
+    virtual LRESULT DispatchMessageW(const MSG *msg) = 0;
     virtual void FreeKnownFolderDefinitionFields(KNOWNFOLDER_DEFINITION *d) = 0;
     virtual HWND GetConsoleWindow() = 0;
     virtual BOOL GetExitCodeProcess(HANDLE process, LPDWORD exitCode) = 0;
+    virtual BOOL GetMessageW(LPMSG msg, HWND wnd, UINT filterMin, UINT filterMax) = 0;
     virtual DWORD GetLastError() = 0;
     virtual HRESULT IIDFromString(PCWSTR s, LPIID iid) = 0;
     virtual HRESULT SHGetKnownFolderIDList(
@@ -33,6 +35,7 @@ public:
         SFGAOF *out
     ) = 0;
     virtual BOOL ShellExecuteExW(LPSHELLEXECUTEINFOW info) = 0;
+    virtual BOOL TranslateMessage(const MSG *msg) = 0;
     virtual DWORD WaitForSingleObject(HANDLE h, DWORD milliseconds) = 0;
 };
 
@@ -50,6 +53,8 @@ public:
     ) override;
     void CoTaskMemFree(LPVOID p) override;
     void CoUninitialize() override;
+    LRESULT DispatchMessageW(const MSG *msg) override;
+    BOOL GetMessageW(LPMSG msg, HWND wnd, UINT filterMin, UINT filterMax) override;
     void FreeKnownFolderDefinitionFields(KNOWNFOLDER_DEFINITION *d) override;
     HWND GetConsoleWindow() override;
     BOOL GetExitCodeProcess(HANDLE process, LPDWORD exitCode) override;
@@ -69,5 +74,6 @@ public:
         SFGAOF in,
         SFGAOF *out
     ) override;
+    BOOL TranslateMessage(const MSG *msg) override;
     DWORD WaitForSingleObject(HANDLE h, DWORD milliseconds) override;
 };

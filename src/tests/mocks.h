@@ -13,10 +13,12 @@ public:
     ), (override));
     MOCK_METHOD(void, CoTaskMemFree, (PVOID p), (override));
     MOCK_METHOD(void, CoUninitialize, (), (override));
+    MOCK_METHOD(LRESULT, DispatchMessageW, (const MSG *msg), (override));
     MOCK_METHOD(void, FreeKnownFolderDefinitionFields, (KNOWNFOLDER_DEFINITION *d), (override));
     MOCK_METHOD(HWND, GetConsoleWindow, (), (override));
     MOCK_METHOD(BOOL, GetExitCodeProcess, (HANDLE process, LPDWORD exitCode), (override));
     MOCK_METHOD(DWORD, GetLastError, (), (override));
+    MOCK_METHOD(BOOL, GetMessageW, (LPMSG msg, HWND wnd, UINT filterMin, UINT filterMax));
     MOCK_METHOD(HRESULT, IIDFromString, (PCWSTR s, LPIID iid), (override));
     MOCK_METHOD(BOOL, ShellExecuteExW, (LPSHELLEXECUTEINFOW info), (override));
     MOCK_METHOD(HRESULT, SHGetKnownFolderIDList, (
@@ -32,6 +34,7 @@ public:
         SFGAOF in,
         SFGAOF *out
     ), (override));
+    MOCK_METHOD(BOOL, TranslateMessage, (const MSG *msg), (override));
     MOCK_METHOD(DWORD, WaitForSingleObject, (HANDLE h, DWORD milliseconds), (override));
 };
 

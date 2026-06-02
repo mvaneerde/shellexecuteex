@@ -40,6 +40,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
         { L"--connect-network-drive", FlagArg(SEE_MASK_CONNECTNETDRV) },
         { L"--do-environment-substitution", FlagArg(SEE_MASK_DOENVSUBST) },
         { L"--log-usage", FlagArg(SEE_MASK_FLAG_LOG_USAGE) },
+        { L"--invoke-id-list", FlagArg(SEE_MASK_INVOKEIDLIST) },
         { L"--no-async", FlagArg(SEE_MASK_NOASYNC) },
         { L"--no-close-process", FlagArg(SEE_MASK_NOCLOSEPROCESS) },
         { L"--no-console", FlagArg(SEE_MASK_NO_CONSOLE) },
