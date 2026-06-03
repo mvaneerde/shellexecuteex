@@ -1,6 +1,8 @@
 #include "common.h"
 
-Usage::Usage(IKnownFolders *knownFolders, IWindowsApi *api) : m_knownFolders(knownFolders), m_api(api) {}
+Usage::Usage(UsageContext context) :
+    m_knownFolders(context.knownFolders),
+    m_api(context.api) {}
 
 HRESULT Usage::HandleUsage(int argc, LPCWSTR argv[], bool &handled) {
     if (IsUsage(argc, argv)) {

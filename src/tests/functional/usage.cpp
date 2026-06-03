@@ -11,7 +11,7 @@ TEST(Usage, KnownFolders_Functional) {
     };
 
     KnownFolders knownFolders(&api);
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
     bool handled = false; // HandleHelp should flip this to true
     EXPECT_EQ(S_OK, usage.HandleHelp(_countof(argv), argv, handled));
     EXPECT_TRUE(handled);

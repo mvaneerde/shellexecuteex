@@ -6,9 +6,14 @@ public:
     virtual HRESULT HandleHelp(int argc, LPCWSTR argv[], bool &handled) = 0;
 };
 
+struct UsageContext {
+    IKnownFolders* knownFolders;
+    IWindowsApi* api;
+};
+
 class Usage : public IUsage {
 public:
-    Usage(IKnownFolders *knownFolders, IWindowsApi *api);
+    Usage(UsageContext context);
 
     // IUsage
     HRESULT HandleUsage(int argc, LPCWSTR argv[], bool &handled) override;
