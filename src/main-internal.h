@@ -5,6 +5,7 @@ struct MainContext {
     IKnownFolders* knownFolders;
     IUsage* usage;
     IPrefs* prefs;
+    IMessagePump* messagePump;
 };
 
 int wmain_testable(int argc, LPCWSTR argv[]);

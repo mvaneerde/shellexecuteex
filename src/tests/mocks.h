@@ -13,11 +13,31 @@ public:
     ), (override));
     MOCK_METHOD(void, CoTaskMemFree, (PVOID p), (override));
     MOCK_METHOD(void, CoUninitialize, (), (override));
+    MOCK_METHOD(LRESULT, DispatchMessageW, (const MSG *msg), (override));
+    MOCK_METHOD(BOOL, EnumWindows, (WNDENUMPROC callback, LPARAM param), (override));
+    MOCK_METHOD(BOOL, EnumThreadWindows, (DWORD threadId, WNDENUMPROC callback, LPARAM param), (override));
     MOCK_METHOD(void, FreeKnownFolderDefinitionFields, (KNOWNFOLDER_DEFINITION *d), (override));
     MOCK_METHOD(HWND, GetConsoleWindow, (), (override));
+    MOCK_METHOD(DWORD, GetCurrentProcessId, (), (override));
+    MOCK_METHOD(DWORD, GetCurrentThreadId, (), (override));
+    MOCK_METHOD(DWORD, GetWindowThreadProcessId, (HWND hwnd, LPDWORD processId), (override));
     MOCK_METHOD(BOOL, GetExitCodeProcess, (HANDLE process, LPDWORD exitCode), (override));
     MOCK_METHOD(DWORD, GetLastError, (), (override));
     MOCK_METHOD(HRESULT, IIDFromString, (PCWSTR s, LPIID iid), (override));
+    MOCK_METHOD(DWORD, MsgWaitForMultipleObjectsEx, (
+        DWORD count,
+        const HANDLE *handles,
+        DWORD milliseconds,
+        DWORD wakeMask,
+        DWORD flags
+    ), (override));
+    MOCK_METHOD(BOOL, PeekMessageW, (
+        LPMSG msg,
+        HWND hwnd,
+        UINT filterMin,
+        UINT filterMax,
+        UINT removeMsg
+    ), (override));
     MOCK_METHOD(BOOL, ShellExecuteExW, (LPSHELLEXECUTEINFOW info), (override));
     MOCK_METHOD(HRESULT, SHGetKnownFolderIDList, (
         REFKNOWNFOLDERID id,
@@ -32,6 +52,8 @@ public:
         SFGAOF in,
         SFGAOF *out
     ), (override));
+    MOCK_METHOD(BOOL, IsWindowVisible, (HWND hwnd), (override));
+    MOCK_METHOD(BOOL, TranslateMessage, (const MSG *msg), (override));
     MOCK_METHOD(DWORD, WaitForSingleObject, (HANDLE h, DWORD milliseconds), (override));
 };
 

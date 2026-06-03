@@ -38,6 +38,7 @@ add_library(
     cleanup.cpp
     known-folders.cpp
     main-internal.cpp
+    message-pump.cpp
     prefs.cpp
     usage.cpp
     show-window-command.cpp

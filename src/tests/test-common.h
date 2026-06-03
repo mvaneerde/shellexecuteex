@@ -4,8 +4,10 @@
 #include "mocks.h"
 
 using ::testing::_;
+using ::testing::DoAll;
 using ::testing::Invoke;
 using ::testing::Return;
+using ::testing::SetArgReferee;
 
 MATCHER_P(HasBit, bit, "argument has the given bit set") {
     return (arg & bit) == bit;
@@ -22,4 +24,3 @@ bool operator==(const SHELLEXECUTEINFOW &a, const SHELLEXECUTEINFOW &b);
 void ExpectEq_ShellExecuteInfoW(
     const SHELLEXECUTEINFOW &expected,
     const SHELLEXECUTEINFOW &actual);
-

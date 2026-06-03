@@ -26,12 +26,36 @@ void WindowsApi::CoUninitialize() {
     return ::CoUninitialize();
 }
 
+LRESULT WindowsApi::DispatchMessageW(const MSG *msg) {
+    return ::DispatchMessageW(msg);
+}
+
+BOOL WindowsApi::EnumWindows(WNDENUMPROC callback, LPARAM param) {
+    return ::EnumWindows(callback, param);
+}
+
+BOOL WindowsApi::EnumThreadWindows(DWORD threadId, WNDENUMPROC callback, LPARAM param) {
+    return ::EnumThreadWindows(threadId, callback, param);
+}
+
 void WindowsApi::FreeKnownFolderDefinitionFields(KNOWNFOLDER_DEFINITION *d) {
     return ::FreeKnownFolderDefinitionFields(d);
 }
 
 HWND WindowsApi::GetConsoleWindow() {
     return ::GetConsoleWindow();
+}
+
+DWORD WindowsApi::GetCurrentProcessId() {
+    return ::GetCurrentProcessId();
+}
+
+DWORD WindowsApi::GetCurrentThreadId() {
+    return ::GetCurrentThreadId();
+}
+
+DWORD WindowsApi::GetWindowThreadProcessId(HWND window, LPDWORD processId) {
+    return ::GetWindowThreadProcessId(window, processId);
 }
 
 BOOL WindowsApi::GetExitCodeProcess(HANDLE process, LPDWORD exitCode) {
@@ -46,8 +70,24 @@ HRESULT WindowsApi::IIDFromString(PCWSTR s, LPIID iid) {
     return ::IIDFromString(s, iid);
 }
 
+DWORD WindowsApi::MsgWaitForMultipleObjectsEx(DWORD count, const HANDLE *handles, DWORD milliseconds, DWORD wakeMask, DWORD flags) {
+    return ::MsgWaitForMultipleObjectsEx(count, handles, milliseconds, wakeMask, flags);
+}
+
+BOOL WindowsApi::PeekMessageW(LPMSG msg, HWND window, UINT filterMin, UINT filterMax, UINT removeMsg) {
+    return ::PeekMessageW(msg, window, filterMin, filterMax, removeMsg);
+}
+
 BOOL WindowsApi::ShellExecuteExW(LPSHELLEXECUTEINFOW info) {
     return ::ShellExecuteExW(info);
+}
+
+BOOL WindowsApi::IsWindowVisible(HWND window) {
+    return ::IsWindowVisible(window);
+}
+
+BOOL WindowsApi::TranslateMessage(const MSG *msg) {
+    return ::TranslateMessage(msg);
 }
 
 HRESULT WindowsApi::SHGetKnownFolderIDList(

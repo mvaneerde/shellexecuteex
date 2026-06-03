@@ -12,6 +12,7 @@
 #include "windows-api.h"
 #include "known-folders.h"
 #include "cleanup.h"
+#include "message-pump.h"
 #include "usage.h"
 #include "prefs.h"
 #include "show-window-command.h"

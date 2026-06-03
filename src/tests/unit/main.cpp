@@ -1,11 +1,17 @@
 #include "test-common.h"
 
+class MockMessagePump : public IMessagePump {
+public:
+    MOCK_METHOD(int, WaitAndPumpMessages, (HANDLE), (override));
+};
+
 TEST(Main, Api_CoInitializeEx_Failed) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     int failure = -12345;
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(failure));
@@ -18,8 +24,7 @@ TEST(Main, Api_CoInitializeEx_Failed) {
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
     EXPECT_CALL(api, GetLastError()).Times(0);
     EXPECT_CALL(prefs, RelayExitCode()).Times(0);
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(_)).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(0);
 
@@ -36,7 +41,8 @@ TEST(Main, Usage_HandleUsage_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
 
@@ -59,8 +65,7 @@ TEST(Main, Usage_HandleUsage_Failed) {
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
     EXPECT_CALL(api, GetLastError()).Times(0);
     EXPECT_CALL(prefs, RelayExitCode()).Times(0);
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(_)).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -72,13 +77,39 @@ TEST(Main, Usage_HandleUsage_Failed) {
     EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
 
+TEST(Main, Relay_Exit_Code_Valid) {
+    ::testing::NiceMock<MockWindowsApi> api;
+    ::testing::NiceMock<MockKnownFolders> knownFolders;
+    ::testing::NiceMock<MockUsage> usage;
+    ::testing::NiceMock<MockPrefs> prefs;
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
+
+    EXPECT_CALL(api, CoInitializeEx(nullptr, _)).WillOnce(Return(S_OK));
+    EXPECT_CALL(usage, HandleUsage(_, _, _)).WillOnce(::testing::DoAll(::testing::SetArgReferee<2>(false), Return(S_OK)));
+    EXPECT_CALL(usage, HandleHelp(_, _, _)).WillOnce(::testing::DoAll(::testing::SetArgReferee<2>(false), Return(S_OK)));
+    EXPECT_CALL(prefs, Parse(_, _)).WillOnce(Return(S_OK));
+
+    SHELLEXECUTEINFOW info = {};
+    info.hProcess = reinterpret_cast<HANDLE>(0x1234);
+    EXPECT_CALL(prefs, GetShellExecuteInfo()).WillRepeatedly(Return(&info));
+    EXPECT_CALL(api, ShellExecuteExW(_)).WillOnce(Return(TRUE));
+    EXPECT_CALL(prefs, RelayExitCode()).WillOnce(Return(true));
+
+    int expectedExitCode = 42;
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(info.hProcess)).WillOnce(Return(expectedExitCode));
+
+    LPCWSTR argv[] = { L"shellexecuteex.exe", L"--file", L"test.exe", L"--relay-exit-code" };
+    EXPECT_EQ(expectedExitCode, wmain_mockable(_countof(argv), argv, context));
+}
 
 TEST(Main, Usage_Handle_Usage_Handled) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
 
@@ -101,8 +132,7 @@ TEST(Main, Usage_Handle_Usage_Handled) {
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
     EXPECT_CALL(api, GetLastError()).Times(0);
     EXPECT_CALL(prefs, RelayExitCode()).Times(0);
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(_)).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -119,7 +149,8 @@ TEST(Main, Usage_HandleHelp_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
 
@@ -142,8 +173,7 @@ TEST(Main, Usage_HandleHelp_Failed) {
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
     EXPECT_CALL(api, GetLastError()).Times(0);
     EXPECT_CALL(prefs, RelayExitCode()).Times(0);
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(_)).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -160,7 +190,8 @@ TEST(Main, Usage_HandleHelp_Handled) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
 
@@ -183,8 +214,7 @@ TEST(Main, Usage_HandleHelp_Handled) {
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
     EXPECT_CALL(api, GetLastError()).Times(0);
     EXPECT_CALL(prefs, RelayExitCode()).Times(0);
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(_)).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -201,7 +231,8 @@ TEST(Main, Prefs_Parse_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -224,8 +255,7 @@ TEST(Main, Prefs_Parse_Failed) {
     EXPECT_CALL(api, ShellExecuteExW(_)).Times(0);
     EXPECT_CALL(api, GetLastError()).Times(0);
     EXPECT_CALL(prefs, RelayExitCode()).Times(0);
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(_)).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -242,7 +272,8 @@ TEST(Main, No_Relay_Exit_Code) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -271,8 +302,7 @@ TEST(Main, No_Relay_Exit_Code) {
     ));
     EXPECT_CALL(api, GetLastError()).Times(0);
     EXPECT_CALL(prefs, RelayExitCode()).Times(1).WillOnce(Return(false));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(nullptr)).WillOnce(Return(0));
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -289,7 +319,8 @@ TEST(Main, Api_ShellExecuteEx_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -314,8 +345,7 @@ TEST(Main, Api_ShellExecuteEx_Failed) {
     DWORD failure = 12345;
     EXPECT_CALL(api, GetLastError()).Times(1).WillOnce(Return(failure));
     EXPECT_CALL(prefs, RelayExitCode()).Times(0);
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(_)).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -332,7 +362,8 @@ TEST(Main, Relay_Exit_Code_Null_Process) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -362,8 +393,7 @@ TEST(Main, Relay_Exit_Code_Null_Process) {
 
     EXPECT_CALL(api, GetLastError()).Times(0);
     EXPECT_CALL(prefs, RelayExitCode()).Times(1).WillOnce(Return(true));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(0);
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(_)).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -380,7 +410,8 @@ TEST(Main, Relay_Exit_Code_Wait_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -409,11 +440,9 @@ TEST(Main, Relay_Exit_Code_Wait_Failed) {
     ));
 
     EXPECT_CALL(prefs, RelayExitCode()).Times(1).WillOnce(Return(true));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_FAILED));
-
     DWORD failure = 12345;
-    EXPECT_CALL(api, GetLastError()).Times(1).WillOnce(Return(failure));
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(fakeHandle)).WillOnce(Return(failure));
+    EXPECT_CALL(api, GetLastError()).Times(0);
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -430,7 +459,8 @@ TEST(Main, Relay_Exit_Code_Wait_Failed_No_Error) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -459,10 +489,7 @@ TEST(Main, Relay_Exit_Code_Wait_Failed_No_Error) {
     ));
 
     EXPECT_CALL(prefs, RelayExitCode()).Times(1).WillOnce(Return(true));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_FAILED));
-
-    EXPECT_CALL(api, GetLastError()).Times(1).WillOnce(Return(ERROR_SUCCESS));
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(0);
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(fakeHandle)).WillOnce(Return(1));
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -480,7 +507,8 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -509,12 +537,8 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed) {
     ));
 
     EXPECT_CALL(prefs, RelayExitCode()).Times(1).WillOnce(Return(true));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
-    
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(1).WillOnce(Return(FALSE));
-
     DWORD failure = 12345;
-    EXPECT_CALL(api, GetLastError()).Times(1).WillOnce(Return(failure));
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(fakeHandle)).WillOnce(Return(failure));
 
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
@@ -531,7 +555,8 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed_No_Error) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
+    ::testing::NiceMock<MockMessagePump> messagePump;
+    MainContext context = { &api, &knownFolders, &usage, &prefs, &messagePump };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -560,12 +585,7 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed_No_Error) {
     ));
 
     EXPECT_CALL(prefs, RelayExitCode()).Times(1).WillOnce(Return(true));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
-    
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(1).WillOnce(Return(FALSE));
-
-    EXPECT_CALL(api, GetLastError()).Times(1).WillOnce(Return(ERROR_SUCCESS));
-
+    EXPECT_CALL(messagePump, WaitAndPumpMessages(fakeHandle)).WillOnce(Return(1));
     EXPECT_CALL(api, CoUninitialize()).Times(1);
 
     LPCWSTR argv[] = {
@@ -575,58 +595,4 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed_No_Error) {
 
     // main should return a non-zero code (any code will do)
     EXPECT_NE(0, wmain_mockable(_countof(argv), argv, context));
-}
-
-TEST(Main, Relay_Exit_Code_Valid) {
-    ::testing::NiceMock<MockWindowsApi> api;
-    ::testing::NiceMock<MockKnownFolders> knownFolders;
-    ::testing::NiceMock<MockUsage> usage;
-    ::testing::NiceMock<MockPrefs> prefs;
-    MainContext context = { &api, &knownFolders, &usage, &prefs };
-
-    EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
-    EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
-        [](int, LPCWSTR[], bool &handled) -> HRESULT {
-            handled = false;
-            return S_OK;
-        }
-    ));
-    EXPECT_CALL(usage, HandleHelp(_, _, _)).Times(1).WillOnce(Invoke(
-        [](int, LPCWSTR[], bool &handled) -> HRESULT {
-            handled = false;
-            return S_OK;
-        }
-    ));
-    EXPECT_CALL(prefs, Parse(_, _)).Times(1).WillOnce(Return(S_OK));
-
-    SHELLEXECUTEINFOW info = {};
-    EXPECT_CALL(prefs, GetShellExecuteInfo()).Times(::testing::AtLeast(1)).WillRepeatedly(Return(&info));
-
-    HANDLE fakeHandle = reinterpret_cast<HANDLE>(0x1234);
-    EXPECT_CALL(api, ShellExecuteExW(&info)).Times(1).WillOnce(Invoke(
-        [fakeHandle](LPSHELLEXECUTEINFOW info) -> BOOL {
-            info->hProcess = fakeHandle;
-            return TRUE;
-        }
-    ));
-    EXPECT_CALL(api, GetLastError()).Times(0);
-    EXPECT_CALL(prefs, RelayExitCode()).Times(1).WillOnce(Return(true));
-    EXPECT_CALL(api, WaitForSingleObject(_, _)).Times(1).WillOnce(Return(WAIT_OBJECT_0));
-    
-    DWORD failure = 12345;
-    EXPECT_CALL(api, GetExitCodeProcess(_, _)).Times(1).WillOnce(Invoke(
-        [failure](HANDLE, LPDWORD exitCode) -> BOOL {
-            *exitCode = failure;
-            return TRUE;
-        }
-    ));
-
-    EXPECT_CALL(api, CoUninitialize()).Times(1);
-
-    LPCWSTR argv[] = {
-        L"shellexecuteex.exe",
-        L"--file", L"notepad.exe"
-    };
-
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
