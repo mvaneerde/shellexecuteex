@@ -5,6 +5,7 @@ TEST(Main, Api_CoInitializeEx_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     int failure = -12345;
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(failure));
@@ -27,7 +28,7 @@ TEST(Main, Api_CoInitializeEx_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Usage_HandleUsage_Failed) {
@@ -35,6 +36,7 @@ TEST(Main, Usage_HandleUsage_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
 
@@ -67,7 +69,7 @@ TEST(Main, Usage_HandleUsage_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
 
 
@@ -76,6 +78,7 @@ TEST(Main, Usage_Handle_Usage_Handled) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
 
@@ -108,7 +111,7 @@ TEST(Main, Usage_Handle_Usage_Handled) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Usage_HandleHelp_Failed) {
@@ -116,6 +119,7 @@ TEST(Main, Usage_HandleHelp_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
 
@@ -148,7 +152,7 @@ TEST(Main, Usage_HandleHelp_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Usage_HandleHelp_Handled) {
@@ -156,6 +160,7 @@ TEST(Main, Usage_HandleHelp_Handled) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
 
@@ -188,7 +193,7 @@ TEST(Main, Usage_HandleHelp_Handled) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Prefs_Parse_Failed) {
@@ -196,6 +201,7 @@ TEST(Main, Prefs_Parse_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -228,7 +234,7 @@ TEST(Main, Prefs_Parse_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, No_Relay_Exit_Code) {
@@ -236,6 +242,7 @@ TEST(Main, No_Relay_Exit_Code) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -274,7 +281,7 @@ TEST(Main, No_Relay_Exit_Code) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(0, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Api_ShellExecuteEx_Failed) {
@@ -282,6 +289,7 @@ TEST(Main, Api_ShellExecuteEx_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -316,7 +324,7 @@ TEST(Main, Api_ShellExecuteEx_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Relay_Exit_Code_Null_Process) {
@@ -324,6 +332,7 @@ TEST(Main, Relay_Exit_Code_Null_Process) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -363,7 +372,7 @@ TEST(Main, Relay_Exit_Code_Null_Process) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(ERROR_INVALID_HANDLE, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(ERROR_INVALID_HANDLE, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Relay_Exit_Code_Wait_Failed) {
@@ -371,6 +380,7 @@ TEST(Main, Relay_Exit_Code_Wait_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -412,7 +422,7 @@ TEST(Main, Relay_Exit_Code_Wait_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Relay_Exit_Code_Wait_Failed_No_Error) {
@@ -420,6 +430,7 @@ TEST(Main, Relay_Exit_Code_Wait_Failed_No_Error) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -461,7 +472,7 @@ TEST(Main, Relay_Exit_Code_Wait_Failed_No_Error) {
     };
 
     // main should return a non-zero code (any code will do)
-    EXPECT_NE(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_NE(0, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed) {
@@ -469,6 +480,7 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -511,7 +523,7 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed_No_Error) {
@@ -519,6 +531,7 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed_No_Error) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -561,7 +574,7 @@ TEST(Main, Relay_Exit_Code_GetExitCodeProcess_Failed_No_Error) {
     };
 
     // main should return a non-zero code (any code will do)
-    EXPECT_NE(0, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_NE(0, wmain_mockable(_countof(argv), argv, context));
 }
 
 TEST(Main, Relay_Exit_Code_Valid) {
@@ -569,6 +582,7 @@ TEST(Main, Relay_Exit_Code_Valid) {
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockUsage> usage;
     ::testing::NiceMock<MockPrefs> prefs;
+    MainContext context = { &api, &knownFolders, &usage, &prefs };
 
     EXPECT_CALL(api, CoInitializeEx(nullptr, _)).Times(1).WillOnce(Return(S_OK));
     EXPECT_CALL(usage, HandleUsage(_, _, _)).Times(1).WillOnce(Invoke(
@@ -614,5 +628,5 @@ TEST(Main, Relay_Exit_Code_Valid) {
         L"--file", L"notepad.exe"
     };
 
-    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, &api, &knownFolders, &usage, &prefs));
+    EXPECT_EQ(failure, wmain_mockable(_countof(argv), argv, context));
 }

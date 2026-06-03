@@ -3,7 +3,7 @@
 TEST(Usage, Top) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
     std::vector<Args> args;
 
     // all of these sets of arguments should trigger a usage statement
@@ -39,7 +39,7 @@ TEST(Usage, Top) {
 TEST(Usage, NotUsageOrHelp) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
 
     LPCWSTR not_usage_or_help[] = {
         L"shellexecuteex.exe",
@@ -59,7 +59,7 @@ TEST(Usage, NotUsageOrHelp) {
 TEST(Usage, Help_SimpleTopics) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
 
     // each of these should trigger a help statement
     LPCWSTR topics[][3] = {
@@ -82,7 +82,7 @@ TEST(Usage, Help_SimpleTopics) {
 TEST(Usage, Help_KnownFolders_GetManager_Failure) { 
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
 
     HRESULT failure = -12345;
     EXPECT_CALL(knownFolders, GetManager(_)).Times(1).WillOnce(Return(failure));
@@ -99,7 +99,7 @@ TEST(Usage, Help_KnownFolders_PrintKnownFolders_Failure) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockKnownFolderManager> mockManager;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
 
     EXPECT_CALL(knownFolders, GetManager(_)).Times(1).WillOnce(Invoke(
         [&mockManager](
@@ -126,7 +126,7 @@ TEST(Usage, Help_KnownFolders_Success) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
     ::testing::NiceMock<MockKnownFolderManager> mockManager;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
 
     EXPECT_CALL(knownFolders, GetManager(_)).Times(1).WillOnce(Invoke(
         [&mockManager](
@@ -150,7 +150,7 @@ TEST(Usage, Help_KnownFolders_Success) {
 TEST(Usage, Help_NoTopic) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
 
     // it is invalid to ask for help on no topic
     LPCWSTR no_topic[] = { L"shellexecuteex.exe", L"help" };
@@ -163,7 +163,7 @@ TEST(Usage, Help_NoTopic) {
 TEST(Usage, Help_InvalidTopic) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
 
     LPCWSTR invalid_topic[] = { L"shellexecuteex.exe", L"help", L"no-such-topic" };
 
@@ -175,7 +175,7 @@ TEST(Usage, Help_InvalidTopic) {
 TEST(Usage, Help_ExtraArguments) {
     ::testing::NiceMock<MockWindowsApi> api;
     ::testing::NiceMock<MockKnownFolders> knownFolders;
-    Usage usage(&knownFolders, &api);
+    Usage usage({ &knownFolders, &api });
 
     // it is invalid to ask for help on a topic with extra arguments
     LPCWSTR extra_args[] = { L"shellexecuteex.exe", L"help", L"flags", L"extra-arg" };
