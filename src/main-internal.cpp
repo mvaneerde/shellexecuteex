@@ -1,5 +1,61 @@
 #include "common.h"
 
+class WindowWaiter {
+public:
+    WindowWaiter(IWindowsApi *api) :
+        m_api(api),
+        m_windowsInThisProcess(0),
+        m_lastError(ERROR_SUCCESS),
+        m_processId(::GetCurrentProcessId()) {    
+    }
+
+    DWORD Wait() {
+        do {
+            // on the first time, we're giving the window time to start
+            Sleep(500);
+
+            m_windowsInThisProcess = 0;
+            if (!EnumDesktopWindows(nullptr, EnumWindowsCallback, reinterpret_cast<LPARAM>(this))) {
+                DWORD error = m_api->GetLastError();
+                LOG(L"EnumDesktopWindows failed: last error %d", error);
+                return error;
+            }
+
+            if (m_lastError != ERROR_SUCCESS) {
+                // EnumWindowsCallback logs failure
+                return m_lastError;
+            }
+        } while (m_windowsInThisProcess > 0);
+
+        return ERROR_SUCCESS;
+    }
+
+private:
+    static BOOL EnumWindowsCallback(HWND window, LPARAM thisPtr) {
+        return reinterpret_cast<WindowWaiter*>(thisPtr)->Callback(window);
+    }
+
+    BOOL Callback(HWND window) {
+        DWORD processId = 0;
+        if (0 == ::GetWindowThreadProcessId(window, &processId)) {
+            m_lastError = m_api->GetLastError();
+            LOG(L"GetWindowThreadProcessId failed: last error %d", m_lastError);
+            return FALSE;
+        } else {
+            if (processId == m_processId) {
+                m_windowsInThisProcess++;
+            }
+        }
+
+        return TRUE;
+    }
+
+    IWindowsApi *m_api;
+    int m_windowsInThisProcess;
+    DWORD m_lastError;
+    DWORD m_processId;
+};
+
 int wmain_testable(int argc, LPCWSTR argv[]) {
     WindowsApi api;
     KnownFolders knownFolders(&api);
@@ -61,6 +117,16 @@ int wmain_mockable(
     LOG(L"ShellExecuteExW succeeded");
     LOG(L"    hProcess: 0x%p", context.prefs->GetShellExecuteInfo()->hProcess);
     LOG(L"    hInstApp: 0x%p", context.prefs->GetShellExecuteInfo()->hInstApp);
+
+    // wait for all top-level windows to close
+    if (context.prefs->WaitForWindow()) {
+        WindowWaiter waiter(context.api);
+        DWORD error = waiter.Wait();
+        if (error != ERROR_SUCCESS) {
+            // WindowWaiter logs failure
+            return error;
+        }
+    }
 
     // wait for the process to exit and relay the exit code
     if (context.prefs->RelayExitCode()) {

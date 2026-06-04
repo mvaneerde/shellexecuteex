@@ -3,6 +3,7 @@
 Prefs::Prefs(IWindowsApi *api) :
     m_api(api),
     m_relayExitCode(false),
+    m_waitForWindow(false),
     info({ sizeof(info) })
 {
     info.hwnd = m_api->GetConsoleWindow();
@@ -39,6 +40,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
         { L"--async-ok", FlagArg(SEE_MASK_ASYNCOK) },
         { L"--connect-network-drive", FlagArg(SEE_MASK_CONNECTNETDRV) },
         { L"--do-environment-substitution", FlagArg(SEE_MASK_DOENVSUBST) },
+        { L"--invoke-id-list", FlagArg(SEE_MASK_INVOKEIDLIST) },
         { L"--log-usage", FlagArg(SEE_MASK_FLAG_LOG_USAGE) },
         { L"--no-async", FlagArg(SEE_MASK_NOASYNC) },
         { L"--no-close-process", FlagArg(SEE_MASK_NOCLOSEPROCESS) },
@@ -78,6 +80,7 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
     bool seenClass = false;
     bool seenItemIdList = false;
     bool seenRelayExitCode = false;
+    bool seenWaitForWindow = false;
     bool seenShow = false;
 
     for (int i = 1; i < argc; i++) {
@@ -133,6 +136,30 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
 
             info.fMask |= SEE_MASK_CLASSNAME;
             info.lpClass = argv[i];
+            continue;
+        }
+
+        // --relay-exit-code
+        if (0 == _wcsicmp(argv[i], L"--relay-exit-code")) {
+            if (seenRelayExitCode) {
+                LOG(L"%s", L"Multiple --relay-exit-code arguments passed");
+                return E_INVALIDARG;
+            }                
+            seenRelayExitCode = true;
+            
+            m_relayExitCode = true;
+            continue;
+        }
+
+        // --wait-for-window
+        if (0 == _wcsicmp(argv[i], L"--wait-for-window")) {
+            if (seenWaitForWindow) {
+                LOG(L"%s", L"Multiple --wait-for-window arguments passed");
+                return E_INVALIDARG;
+            }
+            seenWaitForWindow = true;
+
+            m_waitForWindow = true;
             continue;
         }
 
@@ -259,6 +286,10 @@ HRESULT Prefs::Parse(int argc, LPCWSTR argv[]) {
 
 bool Prefs::RelayExitCode() {
     return m_relayExitCode;
+}
+
+bool Prefs::WaitForWindow() {
+    return m_waitForWindow;
 }
 
 LPSHELLEXECUTEINFOW Prefs::GetShellExecuteInfo() {

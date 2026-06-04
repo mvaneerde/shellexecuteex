@@ -67,6 +67,7 @@ TEST(Usage, Help_SimpleTopics) {
         // known-folders is more complex
         { L"shellexecuteex.exe", L"help", L"shellexecuteex" },
         { L"shellexecuteex.exe", L"help", L"show-options" },
+        { L"shellexecuteex.exe", L"help", L"wait" },
     };
 
     for (int i = 0; i < _countof(topics); i++) {

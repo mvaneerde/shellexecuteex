@@ -76,6 +76,7 @@ void Usage::ShowUsage() {
     LOG(L"%s", L"    known-folders");
     LOG(L"%s", L"    shellexecuteex");
     LOG(L"%s", L"    show-options");
+    LOG(L"%s", L"    wait");
 }
 
 HRESULT Usage::IsHelp(int argc, LPCWSTR argv[], bool &help, LPCWSTR &topic) {
@@ -102,13 +103,14 @@ HRESULT Usage::ShowHelp(LPCWSTR topic) {
         LOG(L"%s", L"        sets SEE_MASK_DOENVSUBST");
         LOG(L"%s", L"    --connect-network-drive");
         LOG(L"%s", L"        sets SEE_MASK_CONNECTNETDRV");
+        LOG(L"%s", L"    --invoke-id-list");
+        LOG(L"%s", L"        sets SEE_MASK_INVOKEIDLIST");
         LOG(L"%s", L"    --log-usage");
         LOG(L"%s", L"        sets SEE_MASK_FLAG_LOG_USAGE");
         LOG(L"%s", L"    --no-async");
         LOG(L"%s", L"        sets SEE_MASK_NOASYNC");
-        LOG(L"%s", L"    --no-close-process [--relay-exit-code]");
+        LOG(L"%s", L"    --no-close-process");
         LOG(L"%s", L"        sets SEE_MASK_NOCLOSEPROCESS");
-        LOG(L"%s", L"        optionally waits and returns the exit code");
         LOG(L"%s", L"    --no-console");
         LOG(L"%s", L"        sets SEE_MASK_NO_CONSOLE");
         LOG(L"%s", L"    --no-query-class-store");
@@ -137,10 +139,19 @@ HRESULT Usage::ShowHelp(LPCWSTR topic) {
         LOG(L"%s", L"    [--show <show-options>]");
         LOG(L"%s", L"    [--verb <verb>]");
         LOG(L"%s", L"    <flags>");
+        LOG(L"%s", L"    <wait>");
         return S_OK;
     } else if (0 == _wcsicmp(topic, L"show-options")) {
         LOG(L"%s", L"<show-options>");
         ShowWindowCommand::LogShowWindowCommands(L"    ");
+        return S_OK;
+    } else if (0 == _wcsicmp(topic, L"wait")) {
+        LOG(L"%s", L"<wait>");
+        LOG(L"%s", L"    --relay-exit-code");
+        LOG(L"%s", L"        waits on the child process and returns its exit code");
+        LOG(L"%s", L"        (requires --no-close-process)");
+        LOG(L"%s", L"    --wait-for-window");
+        LOG(L"%s", L"        waits for all this process's visible top-level windows to close");
         return S_OK;
     } else {
         LOG(L"Unrecognized help topic %s", topic);

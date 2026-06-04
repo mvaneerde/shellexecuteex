@@ -92,4 +92,5 @@ public:
     MOCK_METHOD(HRESULT, Parse, (int, LPCWSTR[]), (override));
     MOCK_METHOD(bool, RelayExitCode, (), (override));
     MOCK_METHOD(LPSHELLEXECUTEINFOW, GetShellExecuteInfo, (), (override));
+    MOCK_METHOD(bool, WaitForWindow, (), (override));
 };
