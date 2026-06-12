@@ -51,6 +51,10 @@ TEST(Prefs, Flags) {
             L"--log-usage",
             SEE_MASK_FLAG_LOG_USAGE
         },
+        {
+            L"--invoke-id-list",
+            SEE_MASK_INVOKEIDLIST
+        },
     };
     
     WindowsApi api;
