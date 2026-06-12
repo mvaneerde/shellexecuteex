@@ -102,6 +102,8 @@ HRESULT Usage::ShowHelp(LPCWSTR topic) {
         LOG(L"%s", L"        sets SEE_MASK_DOENVSUBST");
         LOG(L"%s", L"    --connect-network-drive");
         LOG(L"%s", L"        sets SEE_MASK_CONNECTNETDRV");
+        LOG(L"%s", L"    --invoke-id-list");
+        LOG(L"%s", L"        sets SEE_MASK_INVOKEIDLIST");
         LOG(L"%s", L"    --log-usage");
         LOG(L"%s", L"        sets SEE_MASK_FLAG_LOG_USAGE");
         LOG(L"%s", L"    --no-async");
