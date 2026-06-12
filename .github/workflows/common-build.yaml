@@ -36,6 +36,9 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
       - name: Configure CMake
         run: |
           cmake -S src -B ${{ inputs['build-dir'] }}-${{ matrix.arch }} `
